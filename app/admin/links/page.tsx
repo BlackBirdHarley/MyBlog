@@ -4,6 +4,7 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { Plus, ExternalLink, BarChart2, Pencil } from "lucide-react";
+import { LinkDeleteButton } from "@/components/admin/LinkDeleteButton";
 
 export default async function LinksPage() {
   const links = await prisma.affiliateLink.findMany({
@@ -106,6 +107,7 @@ export default async function LinksPage() {
                       >
                         <ExternalLink size={15} />
                       </a>
+                      <LinkDeleteButton id={link.id} name={link.name} />
                     </div>
                   </td>
                 </tr>

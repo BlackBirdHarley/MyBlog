@@ -97,9 +97,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   return NextResponse.json(article);
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const body = await req.json().catch(() => ({}));
+  const { password } = body as { password?: string };
+
+  if (!password) return NextResponse.json({ error: "Password required" }, { status: 400 });
+
+  const user = await prisma.user.findUnique({ where: { email: session.user?.email ?? "" } });
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+  const { compare } = await import("bcryptjs");
+  const valid = await compare(password, user.password);
+  if (!valid) return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
 
   const { id } = await params;
   await prisma.article.delete({ where: { id } });
