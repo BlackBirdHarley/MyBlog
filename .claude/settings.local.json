@@ -1,7 +1,23 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir=false --import-alias=\"@/*\" --no-turbopack)"
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir=false --import-alias=\"@/*\" --no-turbopack)",
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/zod/package.json'\\).version\\)\")",
+      "Bash(node -e \"require\\('./node_modules/recharts/package.json'\\)\")",
+      "Bash(node -e \"require\\('./node_modules/isbot/package.json'\\)\")",
+      "Bash(node -e \"const sk = require\\('./node_modules/@tiptap/starter-kit/dist/index.js'\\); const ext = sk.StarterKit.options || {}; console.log\\(Object.keys\\(ext\\)\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"const h = require\\('./node_modules/@tiptap/html/dist/index.cjs'\\); console.log\\(typeof h.generateHTML\\)\")"
+    ],
+    "additionalDirectories": [
+      "C:\\home\\blog\\app\\api\\auth",
+      "C:\\home\\blog\\app\\go",
+      "C:\\home\\blog\\app\\api\\admin\\links",
+      "C:\\home\\blog\\app\\api\\admin\\analytics\\articles"
     ]
   }
 }

@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+}
+
+model Article {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  title          String
+  excerpt        String?
+  content        Json
+  layoutVariant  LayoutVariant @default(CLASSIC)
+  status         ArticleStatus @default(DRAFT)
+  publishedAt    DateTime?
+  scheduledAt    DateTime?
+  featured       Boolean       @default(false)
+
+  heroImageId      String?
+  heroImage        Media?  @relation("HeroImage", fields: [heroImageId], references: [id])
+  pinterestImageId String?
+  pinterestImage   Media?  @relation("PinterestImage", fields: [pinterestImageId], references: [id])
+
+  metaTitle       String?
+  metaDescription String?
+  ogImageId       String?
+  canonicalUrl    String?
+  pinDescription  String?
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  tags       Tag[]     @relation("ArticleTags")
+
+  pageViews    PageView[]
+  linkClicks   LinkClick[]
+  articleLinks ArticleLink[]
+  pins         ArticlePin[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([categoryId])
+}
+
+enum LayoutVariant {
+  CLASSIC
+  LISTICLE
+  ULTIMATE_GUIDE
+  VISUAL_GALLERY
+  COMPARISON
+}
+
+enum ArticleStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  description String?
+  articles    Article[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Tag {
+  id       String    @id @default(cuid())
+  slug     String    @unique
+  name     String
+  articles Article[] @relation("ArticleTags")
+}
+
+model AffiliateLink {
+  id           String   @id @default(cuid())
+  name         String
+  displayLabel String?
+  targetUrl    String
+  program      String?
+  category     String?
+  commission   Decimal?
+  notes        String?
+  isActive     Boolean  @default(true)
+
+  clicks   LinkClick[]
+  articles ArticleLink[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+model ArticleLink {
+  id        String        @id @default(cuid())
+  articleId String
+  article   Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  linkId    String
+  link      AffiliateLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@unique([articleId, linkId])
+}
+
+model Media {
+  id           String   @id @default(cuid())
+  filename     String
+  url          String
+  thumbnailUrl String?
+  altText      String?
+  caption      String?
+  width        Int?
+  height       Int?
+  fileSize     Int?
+  mimeType     String?
+  createdAt    DateTime @default(now())
+
+  heroForArticles      Article[] @relation("HeroImage")
+  pinterestForArticles Article[] @relation("PinterestImage")
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  articleId String?
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  path      String
+  referrer  String?
+  userAgent String?
+  device    String?
+  browser   String?
+  os        String?
+  country   String?
+  ipHash    String
+  sessionId String
+  createdAt DateTime @default(now())
+
+  @@index([articleId, createdAt])
+  @@index([createdAt])
+}
+
+model LinkClick {
+  id        String        @id @default(cuid())
+  linkId    String
+  link      AffiliateLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  articleId String?
+  article   Article?      @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  referrer  String?
+  userAgent String?
+  device    String?
+  country   String?
+  ipHash    String
+  createdAt DateTime      @default(now())
+
+  @@index([linkId, createdAt])
+  @@index([articleId, createdAt])
+}
+
+model ArticlePin {
+  id          String   @id @default(cuid())
+  articleId   String
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  imageUrl    String
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([articleId, sortOrder])
+}
+
+model StaticPage {
+  id        String   @id  // "about", "privacy", "disclosure"
+  title     String
+  content   Json
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSettings {
+  id                String   @id @default("singleton")
+  siteName          String
+  siteTagline       String?
+  siteDescription   String?
+  siteUrl           String?
+  twitterHandle     String?
+  defaultDisclosure String
+  footerText        String?
+  socialLinks       Json?
+  pinterestUserId   String?
+  updatedAt         DateTime @updatedAt
+}

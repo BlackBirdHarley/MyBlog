@@ -1,26 +1,129 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@plugin "@tailwindcss/typography";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Callout blocks (inserted via TipTap Callout extension) */
+@layer base {
+  .callout {
+    padding: 1rem 1.25rem;
+    border-radius: 0.5rem;
+    border-left-width: 4px;
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout-tip    { background: #f0fdf4; border-color: #22c55e; }
+  .callout-warning{ background: #fffbeb; border-color: #f59e0b; }
+  .callout-info   { background: #eff6ff; border-color: #3b82f6; }
+  .callout-note   { background: #f9fafb; border-color: #6b7280; }
+
+  .callout-tip::before    { content: "✅ Tip — "; font-weight: 600; color: #16a34a; }
+  .callout-warning::before{ content: "⚠️ Warning — "; font-weight: 600; color: #d97706; }
+  .callout-info::before   { content: "ℹ️ Info — "; font-weight: 600; color: #2563eb; }
+  .callout-note::before   { content: "📝 Note — "; font-weight: 600; color: #4b5563; }
+
+  /* ── Image alignment + sizing ──────────────────────────────────────────────
+     Applies to both public .prose and editor .ProseMirror.
+     :where() in the typography plugin has 0 specificity; our rules at (0,2,1) win. */
+
+  /* Float left */
+  .prose img[data-align="left"],
+  .ProseMirror img[data-align="left"] {
+    float: left;
+    margin-top: 0.25rem;
+    margin-right: 1.5rem;
+    margin-bottom: 1rem;
+    margin-left: 0;
+  }
+
+  /* Float right */
+  .prose img[data-align="right"],
+  .ProseMirror img[data-align="right"] {
+    float: right;
+    margin-top: 0.25rem;
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+    margin-right: 0;
+  }
+
+  /* Full-width block */
+  .prose img[data-align="center"],
+  .ProseMirror img[data-align="center"] {
+    display: block;
+    float: none;
+    clear: both;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ── Size presets ──────────────────────────────────────────────────────── */
+
+  /* Float sizes */
+  .prose img[data-align="left"][data-size="sm"],
+  .prose img[data-align="right"][data-size="sm"],
+  .ProseMirror img[data-align="left"][data-size="sm"],
+  .ProseMirror img[data-align="right"][data-size="sm"]  { width: 25%; max-width: 180px; }
+
+  .prose img[data-align="left"][data-size="md"],
+  .prose img[data-align="right"][data-size="md"],
+  .ProseMirror img[data-align="left"][data-size="md"],
+  .ProseMirror img[data-align="right"][data-size="md"]  { width: 40%; max-width: 280px; }
+
+  .prose img[data-align="left"][data-size="lg"],
+  .prose img[data-align="right"][data-size="lg"],
+  .ProseMirror img[data-align="left"][data-size="lg"],
+  .ProseMirror img[data-align="right"][data-size="lg"]  { width: 55%; max-width: 400px; }
+
+  /* Float full — no width cap */
+  .prose img[data-align="left"][data-size="full"],
+  .prose img[data-align="right"][data-size="full"],
+  .ProseMirror img[data-align="left"][data-size="full"],
+  .ProseMirror img[data-align="right"][data-size="full"] { width: 45%; max-width: 340px; }
+
+  /* Centered sizes */
+  .prose img[data-align="center"][data-size="sm"],
+  .ProseMirror img[data-align="center"][data-size="sm"]   { width: 40%; }
+  .prose img[data-align="center"][data-size="md"],
+  .ProseMirror img[data-align="center"][data-size="md"]   { width: 65%; }
+  .prose img[data-align="center"][data-size="lg"],
+  .ProseMirror img[data-align="center"][data-size="lg"]   { width: 85%; }
+  .prose img[data-align="center"][data-size="full"],
+  .ProseMirror img[data-align="center"][data-size="full"] { width: 100%; }
+
+  /* ── Mobile: always full-width ──────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .prose img[data-align="left"],
+    .prose img[data-align="right"],
+    .ProseMirror img[data-align="left"],
+    .ProseMirror img[data-align="right"] {
+      float: none;
+      clear: both;
+      width: 100% !important;
+      max-width: none !important;
+      margin: 1rem 0;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── Premium public site animations ────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+
+.animate-fade-up {
+  animation: fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.delay-100 { animation-delay: 0.10s; }
+.delay-200 { animation-delay: 0.20s; }
+.delay-300 { animation-delay: 0.30s; }
+.delay-400 { animation-delay: 0.40s; }
+
+/* Hide scrollbar but keep scroll */
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
