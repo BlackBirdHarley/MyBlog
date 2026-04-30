@@ -11,7 +11,10 @@
       "Bash(node -e \"require\\('./node_modules/isbot/package.json'\\)\")",
       "Bash(node -e \"const sk = require\\('./node_modules/@tiptap/starter-kit/dist/index.js'\\); const ext = sk.StarterKit.options || {}; console.log\\(Object.keys\\(ext\\)\\)\")",
       "Bash(node -e ' *)",
-      "Bash(node -e \"const h = require\\('./node_modules/@tiptap/html/dist/index.cjs'\\); console.log\\(typeof h.generateHTML\\)\")"
+      "Bash(node -e \"const h = require\\('./node_modules/@tiptap/html/dist/index.cjs'\\); console.log\\(typeof h.generateHTML\\)\")",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ],
     "additionalDirectories": [
       "C:\\home\\blog\\app\\api\\auth",
