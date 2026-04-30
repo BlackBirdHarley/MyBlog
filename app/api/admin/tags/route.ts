@@ -4,7 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { slugify } from "@/lib/utils";
 
-const schema = z.object({ name: z.string().min(1), slug: z.string().optional() });
+const schema = z.object({
+  name: z.string().min(1),
+  slug: z.string().optional(),
+  categoryId: z.string().optional().nullable(),
+});
 
 export async function GET() {
   const session = await auth();
@@ -12,7 +16,10 @@ export async function GET() {
 
   const tags = await prisma.tag.findMany({
     orderBy: { name: "asc" },
-    include: { _count: { select: { articles: true } } },
+    include: {
+      _count: { select: { articles: true } },
+      category: { select: { id: true, name: true } },
+    },
   });
   return NextResponse.json(tags);
 }
@@ -25,7 +32,11 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const slug = parsed.data.slug || slugify(parsed.data.name);
-  const tag = await prisma.tag.create({ data: { ...parsed.data, slug } });
+  const { categoryId, ...rest } = parsed.data;
+  const slug = rest.slug || slugify(rest.name);
+  const tag = await prisma.tag.create({
+    data: { ...rest, slug, ...(categoryId ? { categoryId } : {}) },
+    include: { category: { select: { id: true, name: true } } },
+  });
   return NextResponse.json(tag, { status: 201 });
 }

@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import Link from "next/link";
 import { PenSquare, Plus, Eye, BarChart2 } from "lucide-react";
+import { ArticleDeleteButton } from "@/components/admin/ArticleDeleteButton";
 
 export default async function ArticlesPage({
   searchParams,
@@ -146,6 +147,7 @@ export default async function ArticlesPage({
                       >
                         <PenSquare size={15} />
                       </Link>
+                      <ArticleDeleteButton id={article.id} title={article.title} />
                     </div>
                   </td>
                 </tr>
