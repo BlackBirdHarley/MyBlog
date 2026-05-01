@@ -20,7 +20,6 @@ interface ArticleFormProps {
     slug: string;
     excerpt: string | null;
     content: object;
-    layoutVariant: string;
     status: string;
     featured: boolean;
     categoryId: string | null;
@@ -36,13 +35,6 @@ interface ArticleFormProps {
   tags: Tag[];
 }
 
-const LAYOUT_LABELS: Record<string, string> = {
-  CLASSIC: "Classic Blog",
-  LISTICLE: "Listicle / Roundup",
-  ULTIMATE_GUIDE: "Ultimate Guide",
-  VISUAL_GALLERY: "Visual Gallery",
-  COMPARISON: "Comparison / Review",
-};
 
 export function ArticleForm({ articleId, initialData, categories, tags }: ArticleFormProps) {
   const router = useRouter();
@@ -53,7 +45,6 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
   const [slugEdited, setSlugEdited] = useState(!!initialData?.slug);
   const [excerpt, setExcerpt] = useState(initialData?.excerpt ?? "");
   const [content, setContent] = useState<object>(initialData?.content ?? {});
-  const [layoutVariant, setLayoutVariant] = useState(initialData?.layoutVariant ?? "CLASSIC");
   const [status, setStatus] = useState(initialData?.status ?? "DRAFT");
   const [featured, setFeatured] = useState(initialData?.featured ?? false);
   const [categoryId, setCategoryId] = useState(initialData?.categoryId ?? "");
@@ -86,7 +77,6 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
     slug,
     excerpt: excerpt || null,
     content,
-    layoutVariant,
     status,
     featured,
     categoryId: categoryId || null,
@@ -95,7 +85,7 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
     metaTitle: metaTitle || null,
     metaDescription: metaDescription || null,
     canonicalUrl: canonicalUrl || null,
-  }), [title, slug, excerpt, content, layoutVariant, status, featured, categoryId, selectedTags, heroImage, metaTitle, metaDescription, canonicalUrl]);
+  }), [title, slug, excerpt, content, status, featured, categoryId, selectedTags, heroImage, metaTitle, metaDescription, canonicalUrl]);
 
   async function save(overrideStatus?: string) {
     if (!title.trim()) { setSaveError("Title is required"); return; }
@@ -304,20 +294,6 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
         {/* Hero image */}
         <div className="bg-white border border-gray-200 rounded-xl p-4">
           <ImageUpload value={heroImage} onChange={setHeroImage} label="Hero image" aspectRatio="aspect-video" />
-        </div>
-
-        {/* Layout */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-          <h3 className="text-sm font-medium text-gray-700">Layout</h3>
-          <select
-            value={layoutVariant}
-            onChange={(e) => setLayoutVariant(e.target.value)}
-            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
-          >
-            {Object.entries(LAYOUT_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
         </div>
 
         {/* Excerpt */}

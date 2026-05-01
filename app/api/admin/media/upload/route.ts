@@ -5,26 +5,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const contentType = req.headers.get("content-type") ?? "";
 
-  // Client-side upload: browser uploads directly to Vercel Blob, bypassing 4.5MB serverless limit
+  // Client-side upload: browser uploads directly to Vercel Blob (no 4.5MB limit)
+  // Auth checked in onBeforeGenerateToken — completion notification from Vercel has no session cookie
   if (contentType.includes("application/json")) {
     const body = (await req.json()) as HandleUploadBody;
     try {
       const jsonResponse = await handleUpload({
         body,
         request: req,
-        onBeforeGenerateToken: async () => ({
-          allowedContentTypes: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml"],
-          maximumSizeInBytes: 10 * 1024 * 1024,
-          addRandomSuffix: true,
-        }),
-        onUploadCompleted: async () => {
-          // DB record created by client after upload via POST /api/admin/media
+        onBeforeGenerateToken: async () => {
+          const session = await auth();
+          if (!session) throw new Error("Unauthorized");
+          return {
+            allowedContentTypes: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml"],
+            maximumSizeInBytes: 10 * 1024 * 1024,
+            addRandomSuffix: true,
+          };
         },
+        onUploadCompleted: async () => {},
       });
       return NextResponse.json(jsonResponse);
     } catch (error) {
@@ -33,6 +33,9 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   // Server-side upload fallback (local dev without Vercel Blob)
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
   const altText = formData.get("altText") as string | null;
