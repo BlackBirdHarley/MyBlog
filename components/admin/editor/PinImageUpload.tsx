@@ -18,12 +18,32 @@ export function PinImageUpload({ value, onChange }: PinImageUploadProps) {
     setUploading(true);
     setError(null);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/admin/media/upload", { method: "POST", body: formData });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Upload failed");
-      const media = await res.json();
-      onChange(media.url);
+      let url: string;
+
+      try {
+        // Client-side upload directly to Vercel Blob (no serverless body limit)
+        const { upload } = await import("@vercel/blob/client");
+        const blob = await upload(file.name, file, {
+          access: "public",
+          handleUploadUrl: "/api/admin/media/upload",
+        });
+        await fetch("/api/admin/media", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: blob.url, filename: file.name, fileSize: file.size, mimeType: file.type }),
+        });
+        url = blob.url;
+      } catch {
+        // Fallback: server-side upload (local dev without Vercel Blob)
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/admin/media/upload", { method: "POST", body: formData });
+        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "Upload failed");
+        const media = await res.json();
+        url = media.url;
+      }
+
+      onChange(url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
