@@ -26,6 +26,7 @@ export function TagManager({ initialTags, categories }: TagManagerProps) {
   const [newName, setNewName] = useState("");
   const [newCategoryId, setNewCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [removeError, setRemoveError] = useState("");
 
   async function create() {
     if (!newName.trim()) return;
@@ -47,8 +48,14 @@ export function TagManager({ initialTags, categories }: TagManagerProps) {
   }
 
   async function remove(id: string) {
+    setRemoveError("");
     const res = await fetch(`/api/admin/tags/${id}`, { method: "DELETE" });
-    if (res.ok) setTags((prev) => prev.filter((t) => t.id !== id));
+    if (res.ok) {
+      setTags((prev) => prev.filter((t) => t.id !== id));
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setRemoveError(data.error ?? "Failed to delete tag");
+    }
   }
 
   return (
@@ -76,6 +83,7 @@ export function TagManager({ initialTags, categories }: TagManagerProps) {
         ))}
         {tags.length === 0 && <p className="text-sm text-gray-400">No tags yet</p>}
       </div>
+      {removeError && <p className="text-xs text-red-600 mb-3">{removeError}</p>}
 
       <div className="flex gap-2">
         <input
