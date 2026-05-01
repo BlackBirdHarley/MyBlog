@@ -54,7 +54,7 @@ export function PinImageUpload({ value, onChange }: PinImageUploadProps) {
   return (
     <div className="w-20 shrink-0">
       {value ? (
-        <div className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-[2/3]">
+        <div className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-2/3">
           <Image src={value} alt="" fill className="object-cover" sizes="80px" />
           <button
             type="button"
@@ -67,7 +67,7 @@ export function PinImageUpload({ value, onChange }: PinImageUploadProps) {
       ) : (
         <div
           onClick={() => inputRef.current?.click()}
-          className="flex flex-col items-center justify-center gap-1 cursor-pointer rounded-lg border-2 border-dashed border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-colors aspect-[2/3]"
+          className="flex flex-col items-center justify-center gap-1 cursor-pointer rounded-lg border-2 border-dashed border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-colors aspect-2/3"
         >
           {uploading ? (
             <Loader2 size={14} className="text-gray-400 animate-spin" />
