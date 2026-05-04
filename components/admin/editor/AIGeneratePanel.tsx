@@ -39,7 +39,7 @@ export function AIGeneratePanel({ editor }: { editor: Editor }) {
       if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
       const { html } = await res.json();
 
-      // Convert HTML → TipTap JSON (runs in browser, DOM available)
+      // Convert HTML -> TipTap JSON (runs in browser, DOM available)
       const json = generateJSON(`<h1>${title}</h1>${html}`, [
         StarterKit.configure({ link: false }),
         ImageAlignExtension,
@@ -116,7 +116,7 @@ export function AIGeneratePanel({ editor }: { editor: Editor }) {
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
                 rows={2}
-                placeholder="Focus on waterproof options, include care tips…"
+                placeholder="Focus on waterproof options, include care tips..."
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
               />
             </div>
@@ -139,7 +139,7 @@ export function AIGeneratePanel({ editor }: { editor: Editor }) {
                 ))}
               </div>
               <p className="text-xs text-gray-400 mt-1">
-                {length === "short" ? "600–900" : length === "medium" ? "1200–1700" : "2000–2800"} words
+                {length === "short" ? "600-900" : length === "medium" ? "1200-1700" : "2000-2800"} words
               </p>
             </div>
           </div>
@@ -153,7 +153,7 @@ export function AIGeneratePanel({ editor }: { editor: Editor }) {
             className="w-full flex items-center justify-center gap-2 py-2.5 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 disabled:opacity-50 transition-colors"
           >
             {loading ? (
-              <><Loader2 size={14} className="animate-spin" /> Generating…</>
+              <><Loader2 size={14} className="animate-spin" /> Generating...</>
             ) : (
               <><Sparkles size={14} /> Generate</>
             )}
@@ -161,7 +161,7 @@ export function AIGeneratePanel({ editor }: { editor: Editor }) {
 
           {loading && (
             <p className="text-xs text-gray-400 text-center">
-              Usually takes 15–40 seconds…
+              Usually takes 15-40 seconds...
             </p>
           )}
         </div>

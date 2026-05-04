@@ -36,7 +36,7 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
     metaDescription: article.metaDescription,
     canonicalUrl: article.canonicalUrl,
     publishedAt: article.publishedAt?.toISOString() ?? null,
-    pins: article.pins.map((p) => ({ imageUrl: p.imageUrl, description: p.description })),
+    pins: article.pins.map((p) => ({ imageUrl: p.imageUrl, altText: p.altText, description: p.description })),
   };
 
   return (

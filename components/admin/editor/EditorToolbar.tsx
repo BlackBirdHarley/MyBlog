@@ -4,7 +4,7 @@ import type { Editor } from "@tiptap/react";
 import {
   Bold, Italic, Strikethrough, Code, List, ListOrdered,
   Quote, Minus, Heading2, Heading3, Undo, Redo, Link2,
-  Table2, AlertCircle, ChevronDown,
+  Table2, AlertCircle, ChevronDown, Rows3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AffiliateLinkPicker } from "./AffiliateLinkPicker";
@@ -12,6 +12,7 @@ import { ImageInsertPanel } from "./ImageInsertPanel";
 import { AIGeneratePanel } from "./AIGeneratePanel";
 import { useState, useRef, useEffect } from "react";
 import type { CalloutType } from "./extensions/Callout";
+import type { LineHeightValue } from "./extensions/LineHeight";
 
 interface ToolbarProps {
   editor: Editor | null;
@@ -40,10 +41,16 @@ function Btn({
 }
 
 const CALLOUT_OPTIONS: { type: CalloutType; label: string; color: string }[] = [
-  { type: "tip",     label: "✅ Tip",     color: "text-green-700" },
-  { type: "warning", label: "⚠️ Warning", color: "text-amber-700" },
-  { type: "info",    label: "ℹ️ Info",    color: "text-blue-700"  },
-  { type: "note",    label: "📝 Note",    color: "text-gray-700"  },
+  { type: "tip",     label: "Tip",     color: "text-green-700" },
+  { type: "warning", label: "Warning", color: "text-amber-700" },
+  { type: "info",    label: "Info",    color: "text-blue-700"  },
+  { type: "note",    label: "Note",    color: "text-gray-700"  },
+];
+
+const LINE_HEIGHT_OPTIONS: { value: LineHeightValue; label: string }[] = [
+  { value: "1.35", label: "Tight" },
+  { value: "1.55", label: "Normal" },
+  { value: "1.75", label: "Relaxed" },
 ];
 
 function CalloutDropdown({ editor }: { editor: Editor }) {
@@ -88,6 +95,72 @@ function CalloutDropdown({ editor }: { editor: Editor }) {
               {opt.label}
             </button>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LineHeightDropdown({ editor }: { editor: Editor }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const current = editor.getAttributes("paragraph").lineHeight
+    ?? editor.getAttributes("heading").lineHeight
+    ?? null;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onMouseDown={(e) => { e.preventDefault(); setOpen((v) => !v); }}
+        title="Line spacing"
+        className={cn(
+          "flex items-center gap-0.5 p-1.5 rounded-md transition-colors text-gray-500 hover:bg-gray-100 hover:text-gray-900",
+          current && "bg-gray-200 text-gray-900"
+        )}
+      >
+        <Rows3 size={15} />
+        <ChevronDown size={11} />
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-34 py-1">
+          {LINE_HEIGHT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                editor.chain().focus().setLineHeight(opt.value).run();
+                setOpen(false);
+              }}
+              className={cn(
+                "w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50",
+                current === opt.value ? "text-gray-900 font-medium" : "text-gray-600"
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().unsetLineHeight().run();
+              setOpen(false);
+            }}
+            className="w-full text-left px-3 py-1.5 text-sm text-gray-400 hover:bg-gray-50"
+          >
+            Reset
+          </button>
         </div>
       )}
     </div>
@@ -143,6 +216,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
       <Btn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive("blockquote")} title="Blockquote">
         <Quote size={15} />
       </Btn>
+      <LineHeightDropdown editor={editor} />
       <Btn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Horizontal rule">
         <Minus size={15} />
       </Btn>
@@ -154,7 +228,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
         <Link2 size={15} />
       </Btn>
 
-      {/* Affiliate link picker — the key new button */}
+      {/* Affiliate link picker - the key new button */}
       <AffiliateLinkPicker editor={editor} />
 
       <ImageInsertPanel editor={editor} />

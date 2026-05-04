@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-const PER_PAGE = 15; // 3 cols × 5 rows
+const PER_PAGE = 15; // 3 cols x 5 rows
 
 interface Props {
   searchParams: Promise<{ page?: string }>;
@@ -18,7 +18,7 @@ export default async function HomePage({ searchParams }: Props) {
   const page = Math.max(1, parseInt(pageStr ?? "1"));
 
   const [heroArticle, gridArticles, totalCount, categories, settings] = await Promise.all([
-    // Latest article — always the hero (include content for description fallback)
+    // Latest article - always the hero (include content for description fallback)
     prisma.article.findFirst({
       where: { status: "PUBLISHED" },
       orderBy: { publishedAt: "desc" },
@@ -55,7 +55,7 @@ export default async function HomePage({ searchParams }: Props) {
 
   const activeCategories = categories.filter((c) => c._count.articles > 0);
 
-  // Description priority: metaDescription → excerpt → first ~200 chars of body
+  // Description priority: metaDescription -> excerpt -> first ~200 chars of body
   const heroDescription = heroArticle
     ? (heroArticle.metaDescription?.trim() ||
         heroArticle.excerpt?.trim() ||
@@ -70,7 +70,7 @@ export default async function HomePage({ searchParams }: Props) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(webSiteJsonLd) }} />
 
-      {/* Hero — latest article, page 1 only */}
+      {/* Hero - latest article, page 1 only */}
       {page === 1 && (
         <HeroSection article={heroArticle} siteName={siteName} siteDescription={siteDescription} heroDescription={heroDescription} />
       )}
@@ -119,7 +119,7 @@ export default async function HomePage({ searchParams }: Props) {
           <div className="text-center py-20">
             <p className="text-[13px] text-[#9AA3AA]">No more articles.</p>
             <Link href="/" className="mt-4 inline-flex text-[11px] font-semibold text-[#FF9B7A] uppercase tracking-[0.08em] hover:underline">
-              ← Back to start
+              &larr; Back to start
             </Link>
           </div>
         ) : (
@@ -138,15 +138,15 @@ export default async function HomePage({ searchParams }: Props) {
                 href={page === 2 ? "/" : `/?page=${page - 1}`}
                 className="px-5 py-2.5 rounded-full border border-[#E4E9EC] text-[11px] font-semibold text-[#7D8790] hover:border-[#26313A] hover:text-[#1E252B] transition-colors uppercase tracking-[0.06em]"
               >
-                ← Prev
+                &larr; Prev
               </Link>
             )}
 
             <div className="flex items-center gap-1.5">
               {buildPageRange(page, totalPages).map((p, i) =>
-                p === "…" ? (
+                p === "..." ? (
                   <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-[#9AA3AA] text-[13px]">
-                    …
+                    ...
                   </span>
                 ) : (
                   <Link
@@ -169,7 +169,7 @@ export default async function HomePage({ searchParams }: Props) {
                 href={`/?page=${page + 1}`}
                 className="px-5 py-2.5 rounded-full border border-[#E4E9EC] text-[11px] font-semibold text-[#7D8790] hover:border-[#26313A] hover:text-[#1E252B] transition-colors uppercase tracking-[0.06em]"
               >
-                Next →
+                Next &rarr;
               </Link>
             )}
           </div>
@@ -179,19 +179,19 @@ export default async function HomePage({ searchParams }: Props) {
   );
 }
 
-/** Returns page numbers + "…" ellipsis for long pagination */
-function buildPageRange(current: number, total: number): (number | "…")[] {
+/** Returns page numbers + "..." ellipsis for long pagination */
+function buildPageRange(current: number, total: number): (number | "...")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
 
-  const pages: (number | "…")[] = [1];
+  const pages: (number | "...")[] = [1];
 
-  if (current > 3) pages.push("…");
+  if (current > 3) pages.push("...");
 
   for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) {
     pages.push(p);
   }
 
-  if (current < total - 2) pages.push("…");
+  if (current < total - 2) pages.push("...");
 
   pages.push(total);
   return pages;

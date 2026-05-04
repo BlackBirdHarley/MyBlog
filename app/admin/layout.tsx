@@ -7,7 +7,7 @@ export default function AdminLayout({
 }) {
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
+      <Sidebar showSignOut={process.env.DISABLE_ADMIN_AUTH !== "true"} />
       <main className="flex-1 min-w-0 overflow-auto">
         {children}
       </main>

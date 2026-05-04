@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { StatusBadge } from "@/components/admin/StatusBadge";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { Plus, ExternalLink, BarChart2, Pencil } from "lucide-react";
@@ -18,7 +17,7 @@ export default async function LinksPage() {
     <div className="p-8">
       <PageHeader
         title="Affiliate Links"
-        description={`${links.length} total · ${active} active`}
+        description={`${links.length} total / ${active} active`}
         action={
           <Link
             href="/admin/links/new"
@@ -71,7 +70,7 @@ export default async function LinksPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">
-                    {link.program ?? <span className="text-gray-300">—</span>}
+                    {link.program ?? <span className="text-gray-300">-</span>}
                   </td>
                   <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
                     {link._count.articles}

@@ -93,7 +93,7 @@ export function LinkForm({ linkId, initialData }: LinkFormProps) {
       {/* Name */}
       <div>
         <label className={label}>Internal name <span className="text-red-500">*</span></label>
-        <input {...register("name")} className={field} placeholder="Amazon — Pantry Storage Bins" />
+        <input {...register("name")} className={field} placeholder="Amazon - Pantry Storage Bins" />
         {errors.name && <p className={err}>{errors.name.message}</p>}
         <p className="mt-1 text-xs text-gray-400">Only visible to you in the admin.</p>
       </div>
@@ -156,7 +156,7 @@ export function LinkForm({ linkId, initialData }: LinkFormProps) {
           {...register("notes")}
           rows={3}
           className={`${field} resize-none`}
-          placeholder="Internal notes about this link…"
+          placeholder="Internal notes about this link..."
         />
       </div>
 

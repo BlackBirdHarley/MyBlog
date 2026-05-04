@@ -9,7 +9,7 @@ interface ViewTrackerProps {
 
 export function ViewTracker({ articleId, path }: ViewTrackerProps) {
   useEffect(() => {
-    // Fire once on mount — no cookies, no local state needed
+    // Fire once on mount - no cookies, no local state needed
     fetch("/api/track/view", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -18,7 +18,7 @@ interface VisualGalleryLayoutProps {
   contentHtml: string;
   siteUrl: string;
   pinterestUserId?: string | null;
-  pins?: { imageUrl: string; description: string | null }[];
+  pins?: { imageUrl: string; altText?: string | null; description: string | null }[];
   relatedArticles?: Array<{
     slug: string; title: string; excerpt: string | null; publishedAt: Date | null;
     heroImage: { url: string; altText: string | null } | null;
@@ -34,7 +34,10 @@ export function VisualGalleryLayout({ article, contentHtml, siteUrl, pinterestUs
   return (
     <article>
       {article.heroImage ? (
-        <div className="relative w-full h-[55vh] min-h-72 bg-gray-900">
+        <div
+          className="article-image-alt-hover relative w-full h-[42vh] min-h-[240px] max-h-[510px] bg-gray-900"
+          data-alt={article.heroImage.altText ?? article.title}
+        >
           <Image
             src={article.heroImage.url}
             alt={article.heroImage.altText ?? article.title}
@@ -84,7 +87,7 @@ export function VisualGalleryLayout({ article, contentHtml, siteUrl, pinterestUs
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div
           className={[
-            "prose prose-gray prose-lg max-w-none flow-root",
+            "article-prose prose prose-gray prose-lg max-w-none flow-root",
             "prose-a:text-rose-600 prose-a:no-underline hover:prose-a:underline",
             "prose-img:shadow-md",
             "prose-headings:font-extrabold",

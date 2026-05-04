@@ -20,12 +20,12 @@
   .callout-info   { background: #eff6ff; border-color: #3b82f6; }
   .callout-note   { background: #f9fafb; border-color: #6b7280; }
 
-  .callout-tip::before    { content: "✅ Tip — "; font-weight: 600; color: #16a34a; }
-  .callout-warning::before{ content: "⚠️ Warning — "; font-weight: 600; color: #d97706; }
-  .callout-info::before   { content: "ℹ️ Info — "; font-weight: 600; color: #2563eb; }
-  .callout-note::before   { content: "📝 Note — "; font-weight: 600; color: #4b5563; }
+  .callout-tip::before    { content: "Tip - "; font-weight: 600; color: #16a34a; }
+  .callout-warning::before{ content: "Warning - "; font-weight: 600; color: #d97706; }
+  .callout-info::before   { content: "Info - "; font-weight: 600; color: #2563eb; }
+  .callout-note::before   { content: "Note - "; font-weight: 600; color: #4b5563; }
 
-  /* ── Image alignment + sizing ──────────────────────────────────────────────
+  /* -- Image alignment + sizing ----------------------------------------------
      Applies to both public .prose and editor .ProseMirror.
      :where() in the typography plugin has 0 specificity; our rules at (0,2,1) win. */
 
@@ -61,7 +61,7 @@
     margin-right: auto;
   }
 
-  /* ── Size presets ──────────────────────────────────────────────────────── */
+  /* -- Size presets -------------------------------------------------------- */
 
   /* Float sizes */
   .prose img[data-align="left"][data-size="sm"],
@@ -79,7 +79,7 @@
   .ProseMirror img[data-align="left"][data-size="lg"],
   .ProseMirror img[data-align="right"][data-size="lg"]  { width: 55%; max-width: 400px; }
 
-  /* Float full — no width cap */
+  /* Float full - no width cap */
   .prose img[data-align="left"][data-size="full"],
   .prose img[data-align="right"][data-size="full"],
   .ProseMirror img[data-align="left"][data-size="full"],
@@ -95,7 +95,7 @@
   .prose img[data-align="center"][data-size="full"],
   .ProseMirror img[data-align="center"][data-size="full"] { width: 100%; }
 
-  /* ── Mobile: always full-width ──────────────────────────────────────────── */
+  /* -- Mobile: always full-width -------------------------------------------- */
   @media (max-width: 640px) {
     .prose img[data-align="left"],
     .prose img[data-align="right"],
@@ -110,7 +110,7 @@
   }
 }
 
-/* ── Premium public site animations ────────────────────────────────────── */
+/* -- Premium public site animations -------------------------------------- */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -127,3 +127,62 @@
 /* Hide scrollbar but keep scroll */
 .scrollbar-none { scrollbar-width: none; }
 .scrollbar-none::-webkit-scrollbar { display: none; }
+
+.article-prose.prose p {
+  line-height: 1.62;
+  margin-top: 0.85em;
+  margin-bottom: 0.85em;
+}
+
+.article-prose.prose li {
+  line-height: 1.6;
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.article-prose.prose h2 {
+  margin-top: 1.65em;
+  margin-bottom: 0.55em;
+}
+
+.article-prose.prose h3 {
+  margin-top: 1.35em;
+  margin-bottom: 0.45em;
+}
+
+.article-hero-bleed {
+  position: relative;
+  left: 50%;
+  right: 50%;
+  width: 100vw;
+  height: clamp(240px, 42vh, 510px);
+  margin-left: -50vw;
+  margin-right: -50vw;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.article-image-alt-hover {
+  position: relative;
+}
+
+.article-image-alt-hover::after {
+  content: "ALT: " attr(data-alt);
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  display: none;
+  border-radius: 0.5rem;
+  background: rgba(3, 7, 18, 0.85);
+  color: white;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  padding: 0.5rem 0.75rem;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.article-image-alt-hover:hover::after {
+  display: block;
+}

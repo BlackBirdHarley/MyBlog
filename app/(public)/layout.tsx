@@ -9,7 +9,7 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <div className="min-h-screen bg-white">
-      <PublicNav siteName={siteName} />
+      <PublicNav siteName={siteName} logoUrl={settings?.siteLogoUrl ?? null} />
       {children}
       <footer className="border-t border-[#E7ECEF]">
         <div className="px-8 lg:px-14 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">

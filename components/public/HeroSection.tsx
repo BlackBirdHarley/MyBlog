@@ -82,7 +82,7 @@ export function HeroSection({ article, siteName = "My Blog", siteDescription, he
               href={`/blog/${article.slug}`}
               className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FF9B7A] text-white text-[11px] font-semibold uppercase tracking-[0.06em] hover:bg-[#F08060] transition-all hover:-translate-y-px hover:shadow-[0_6px_20px_rgba(255,155,122,0.4)]"
             >
-              Read Article →
+              Read Article &rarr;
             </Link>
           </div>
         </div>

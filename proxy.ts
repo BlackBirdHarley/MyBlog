@@ -6,6 +6,13 @@ import type { NextAuthRequest } from "next-auth";
 const { auth } = NextAuth(authConfig);
 
 export default auth((req: NextAuthRequest) => {
+  if (process.env.DISABLE_ADMIN_AUTH === "true") {
+    if (req.nextUrl.pathname === "/admin/login") {
+      return NextResponse.redirect(new URL("/admin", req.nextUrl.origin));
+    }
+    return NextResponse.next();
+  }
+
   const pathname = req.nextUrl.pathname;
   const isAdminRoute = pathname.startsWith("/admin");
   const isLoginPage = pathname === "/admin/login";

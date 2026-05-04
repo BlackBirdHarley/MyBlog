@@ -20,6 +20,8 @@ export default async function SettingsPage() {
           defaultDisclosure: settings?.defaultDisclosure ?? "This post contains affiliate links. If you purchase through these links, I may earn a commission at no additional cost to you.",
           footerText: settings?.footerText ?? "",
           pinterestUserId: settings?.pinterestUserId ?? "",
+          siteLogoUrl: settings?.siteLogoUrl ?? "",
+          faviconUrl: settings?.faviconUrl ?? "",
         }}
       />
     </div>

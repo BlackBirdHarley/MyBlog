@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import type { Editor } from "@tiptap/react";
 import { NodeSelection } from "@tiptap/pm/state";
 import {
-  AlignLeft, AlignCenter, AlignRight, Trash2, Upload, Loader2,
+  AlignLeft, AlignCenter, AlignRight, Trash2, Upload, Loader2, Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ImageAlign, ImageSize } from "./extensions/ImageAlign";
@@ -38,24 +38,35 @@ function Btn({
   );
 }
 
-// ─── Image controls ────────────────────────────────────────────────────────────
+// --- Image controls ------------------------------------------------------------
 function ImageControls({ editor }: { editor: Editor }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const altInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [altSaved, setAltSaved] = useState(false);
 
   const align = (editor.getAttributes("image").align ?? "center") as ImageAlign;
   const size  = (editor.getAttributes("image").size  ?? "full")   as ImageSize;
+  const alt = (editor.getAttributes("image").alt ?? "") as string;
 
   async function handleFile(file: File) {
     setUploading(true);
     try {
+      const nextAlt = altInputRef.current?.value ?? alt;
       const fd = new FormData();
       fd.append("file", file);
+      fd.append("altText", nextAlt);
       const res = await fetch("/api/admin/media/upload", { method: "POST", body: fd });
       if (!res.ok) throw new Error("Upload failed");
       const media = await res.json();
-      editor.chain().focus().updateAttributes("image", { src: media.url }).run();
+      editor.chain().focus().updateAttributes("image", { src: media.url, alt: media.altText ?? nextAlt }).run();
     } finally { setUploading(false); }
+  }
+
+  function saveAlt() {
+    editor.chain().focus().updateAttributes("image", { alt: altInputRef.current?.value ?? "" }).run();
+    setAltSaved(true);
+    setTimeout(() => setAltSaved(false), 1600);
   }
 
   return (
@@ -87,13 +98,26 @@ function ImageControls({ editor }: { editor: Editor }) {
         <Trash2 size={13} /> Delete
       </Btn>
 
+      <input
+        key={editor.state.selection.from}
+        ref={altInputRef}
+        defaultValue={alt}
+        onMouseDown={(e) => e.stopPropagation()}
+        className="ml-2 min-w-48 flex-1 rounded border border-indigo-200 bg-white px-2 py-1 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        placeholder="ALT text"
+      />
+      <Btn onClick={saveAlt} title="Save ALT text">
+        {altSaved ? <Check size={13} /> : null}
+        {altSaved ? "Saved" : "Save ALT"}
+      </Btn>
+
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
         onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
     </>
   );
 }
 
-// ─── Table controls ────────────────────────────────────────────────────────────
+// --- Table controls ------------------------------------------------------------
 function TableControls({ editor }: { editor: Editor }) {
   return (
     <>
@@ -102,8 +126,8 @@ function TableControls({ editor }: { editor: Editor }) {
       <Btn onClick={() => editor.chain().focus().addRowAfter().run()}  title="Add row below">+ Row ↓</Btn>
       <Btn onClick={() => editor.chain().focus().deleteRow().run()}    title="Delete row"><Trash2 size={12} /> Row</Btn>
       <Divider />
-      <Btn onClick={() => editor.chain().focus().addColumnBefore().run()} title="Add column left">+ Col ←</Btn>
-      <Btn onClick={() => editor.chain().focus().addColumnAfter().run()}  title="Add column right">+ Col →</Btn>
+      <Btn onClick={() => editor.chain().focus().addColumnBefore().run()} title="Add column left">+ Col &larr;</Btn>
+      <Btn onClick={() => editor.chain().focus().addColumnAfter().run()}  title="Add column right">+ Col &rarr;</Btn>
       <Btn onClick={() => editor.chain().focus().deleteColumn().run()}    title="Delete column"><Trash2 size={12} /> Col</Btn>
       <Divider />
       <Btn danger onClick={() => editor.chain().focus().deleteTable().run()} title="Delete table">
@@ -113,7 +137,7 @@ function TableControls({ editor }: { editor: Editor }) {
   );
 }
 
-// ─── HR controls ──────────────────────────────────────────────────────────────
+// --- HR controls --------------------------------------------------------------
 function HRControls({ editor }: { editor: Editor }) {
   return (
     <>
@@ -125,7 +149,7 @@ function HRControls({ editor }: { editor: Editor }) {
   );
 }
 
-// ─── Main export ──────────────────────────────────────────────────────────────
+// --- Main export --------------------------------------------------------------
 export function EditorBubbleMenus({ editor }: { editor: Editor }) {
   const [ctx, setCtx] = useState<ActiveCtx>(null);
 

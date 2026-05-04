@@ -183,6 +183,7 @@ model ArticlePin {
   articleId   String
   article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
   imageUrl    String
+  altText     String?
   description String?
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
@@ -208,5 +209,8 @@ model SiteSettings {
   footerText        String?
   socialLinks       Json?
   pinterestUserId   String?
+  siteLogoUrl       String?
+  faviconUrl        String?
+  faviconUpdatedAt  DateTime?
   updatedAt         DateTime @updatedAt
 }

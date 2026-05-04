@@ -6,10 +6,11 @@ import { Upload, X, Loader2 } from "lucide-react";
 
 interface PinImageUploadProps {
   value: string | null;
-  onChange: (url: string | null) => void;
+  altText: string;
+  onChange: (url: string | null, altText?: string) => void;
 }
 
-export function PinImageUpload({ value, onChange }: PinImageUploadProps) {
+export function PinImageUpload({ value, altText, onChange }: PinImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,20 +31,21 @@ export function PinImageUpload({ value, onChange }: PinImageUploadProps) {
         await fetch("/api/admin/media", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: blob.url, filename: file.name, fileSize: file.size, mimeType: file.type }),
+          body: JSON.stringify({ url: blob.url, filename: file.name, fileSize: file.size, mimeType: file.type, altText: altText || null }),
         });
         url = blob.url;
       } catch {
         // Fallback: server-side upload (local dev without Vercel Blob)
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("altText", altText);
         const res = await fetch("/api/admin/media/upload", { method: "POST", body: formData });
         if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "Upload failed");
         const media = await res.json();
         url = media.url;
       }
 
-      onChange(url);
+      onChange(url, altText);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -55,7 +57,10 @@ export function PinImageUpload({ value, onChange }: PinImageUploadProps) {
     <div className="w-20 shrink-0">
       {value ? (
         <div className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-2/3">
-          <Image src={value} alt="" fill className="object-cover" sizes="80px" />
+          <Image src={value} alt={altText} fill className="object-cover" sizes="80px" />
+          <div className="pointer-events-none absolute inset-x-1 bottom-1 hidden rounded bg-gray-950/85 px-1.5 py-1 text-[10px] leading-tight text-white group-hover:block">
+            <span className="font-medium">ALT:</span> {altText || "No ALT"}
+          </div>
           <button
             type="button"
             onClick={() => onChange(null)}

@@ -32,6 +32,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
+  await prisma.article.updateMany({ where: { categoryId: id }, data: { categoryId: null } });
+  await prisma.tag.updateMany({ where: { categoryId: id }, data: { categoryId: null } });
   await prisma.category.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

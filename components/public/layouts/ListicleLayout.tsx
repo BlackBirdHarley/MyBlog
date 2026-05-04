@@ -18,7 +18,7 @@ interface ListicleLayoutProps {
   contentHtml: string;
   siteUrl: string;
   pinterestUserId?: string | null;
-  pins?: { imageUrl: string; description: string | null }[];
+  pins?: { imageUrl: string; altText?: string | null; description: string | null }[];
   relatedArticles?: Array<{
     slug: string; title: string; excerpt: string | null; publishedAt: Date | null;
     heroImage: { url: string; altText: string | null } | null;
@@ -63,21 +63,24 @@ export function ListicleLayout({ article, contentHtml, siteUrl, pinterestUserId,
       )}
 
       {article.heroImage && (
-        <div className="relative w-full aspect-video overflow-hidden mb-8 bg-gray-100">
+        <div
+          className="article-hero-bleed article-image-alt-hover mb-8"
+          data-alt={article.heroImage.altText ?? article.title}
+        >
           <Image
             src={article.heroImage.url}
             alt={article.heroImage.altText ?? article.title}
             fill
             priority
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, 672px"
+            sizes="100vw"
           />
         </div>
       )}
 
       <div
         className={[
-          "prose prose-gray prose-lg max-w-none flow-root",
+          "article-prose prose prose-gray prose-lg max-w-none flow-root",
           "prose-a:text-rose-600 prose-a:no-underline hover:prose-a:underline",
           "prose-headings:font-extrabold",
           "[counter-reset:listicle-item]",

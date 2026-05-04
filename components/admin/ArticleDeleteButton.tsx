@@ -52,7 +52,7 @@ export function ArticleDeleteButton({ id, title }: { id: string; title: string }
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h2 className="text-base font-semibold text-gray-900">Delete article?</h2>
-                <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">"{title}"</p>
+                <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">&quot;{title}&quot;</p>
               </div>
               <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 ml-4">
                 <X size={18} />
@@ -87,7 +87,7 @@ export function ArticleDeleteButton({ id, title }: { id: string; title: string }
                   disabled={loading || !password}
                   className="flex-1 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
                 >
-                  {loading ? "Deleting…" : "Delete"}
+                  {loading ? "Deleting..." : "Delete"}
                 </button>
               </div>
             </form>

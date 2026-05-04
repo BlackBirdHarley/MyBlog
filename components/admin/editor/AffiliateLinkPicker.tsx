@@ -30,7 +30,6 @@ export function AffiliateLinkPicker({ editor }: AffiliateLinkPickerProps) {
   // Load links when picker opens
   useEffect(() => {
     if (!open) return;
-    setLoading(true);
     fetch("/api/admin/links?isActive=true")
       .then((r) => r.json())
       .then((data) => setLinks(data))
@@ -84,6 +83,12 @@ export function AffiliateLinkPicker({ editor }: AffiliateLinkPickerProps) {
     editor.chain().focus().unsetAffiliateLink().run();
   }
 
+  function togglePicker() {
+    const nextOpen = !open;
+    if (nextOpen) setLoading(true);
+    setOpen(nextOpen);
+  }
+
   const filtered = links.filter(
     (l) =>
       l.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -95,7 +100,7 @@ export function AffiliateLinkPicker({ editor }: AffiliateLinkPickerProps) {
       <div className="flex items-center gap-0.5">
         <button
           type="button"
-          onMouseDown={(e) => { e.preventDefault(); setOpen(!open); }}
+          onMouseDown={(e) => { e.preventDefault(); togglePicker(); }}
           title="Insert affiliate link"
           className={cn(
             "p-1.5 rounded-md transition-colors text-gray-500",
@@ -125,7 +130,7 @@ export function AffiliateLinkPicker({ editor }: AffiliateLinkPickerProps) {
                 ref={searchRef}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search affiliate links…"
+                placeholder="Search affiliate links..."
                 className="flex-1 text-sm bg-transparent focus:outline-none"
               />
             </div>
@@ -133,7 +138,7 @@ export function AffiliateLinkPicker({ editor }: AffiliateLinkPickerProps) {
 
           <div className="max-h-60 overflow-y-auto">
             {loading ? (
-              <p className="text-xs text-gray-400 text-center py-6">Loading…</p>
+              <p className="text-xs text-gray-400 text-center py-6">Loading...</p>
             ) : filtered.length === 0 ? (
               <div className="text-center py-6">
                 <p className="text-xs text-gray-400">No links found</p>
@@ -156,7 +161,7 @@ export function AffiliateLinkPicker({ editor }: AffiliateLinkPickerProps) {
                   <p className="text-sm font-medium text-gray-900">{link.name}</p>
                   <div className="flex items-center gap-2 mt-0.5">
                     {link.displayLabel && (
-                      <span className="text-xs text-gray-400">"{link.displayLabel}"</span>
+                      <span className="text-xs text-gray-400">&quot;{link.displayLabel}&quot;</span>
                     )}
                     {link.program && (
                       <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">

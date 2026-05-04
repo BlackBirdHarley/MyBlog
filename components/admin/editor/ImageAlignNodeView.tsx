@@ -26,10 +26,11 @@ export function ImageAlignNodeView({ node, updateAttributes, selected, deleteNod
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("altText", alt ?? "");
       const res = await fetch("/api/admin/media/upload", { method: "POST", body: formData });
       if (!res.ok) throw new Error((await res.json()).error ?? "Upload failed");
       const media = await res.json();
-      updateAttributes({ src: media.url });
+      updateAttributes({ src: media.url, alt: media.altText ?? alt });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -46,8 +47,13 @@ export function ImageAlignNodeView({ node, updateAttributes, selected, deleteNod
         )}
       >
         {src ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={src} alt={alt ?? ""} className="w-full block rounded-xl" />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={src} alt={alt ?? ""} className="w-full block rounded-xl" />
+            <div className="pointer-events-none absolute inset-x-2 bottom-2 hidden rounded-lg bg-gray-950/85 px-3 py-2 text-xs text-white shadow group-hover:block">
+              <span className="font-medium">ALT:</span> {alt || "No ALT text yet"}
+            </div>
+          </>
         ) : (
           <div className="w-full aspect-video bg-gray-100 rounded-xl flex items-center justify-center">
             <span className="text-gray-400 text-sm">No image</span>

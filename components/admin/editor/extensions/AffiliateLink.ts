@@ -33,7 +33,7 @@ export const AffiliateLinkExtension = Mark.create({
       mergeAttributes(HTMLAttributes, {
         "data-affiliate-id": HTMLAttributes.linkId,
         class: "affiliate-link",
-        // href shown in editor only — public side uses /go/
+        // href shown in editor only - public side uses /go/
         href: `#affiliate-${HTMLAttributes.linkId}`,
       }),
       0,

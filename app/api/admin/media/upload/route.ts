@@ -8,7 +8,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const contentType = req.headers.get("content-type") ?? "";
 
   // Client-side upload: browser uploads directly to Vercel Blob (no 4.5MB limit)
-  // Auth checked in onBeforeGenerateToken — completion notification from Vercel has no session cookie
+  // Auth checked in onBeforeGenerateToken - completion notification from Vercel has no session cookie
   if (contentType.includes("application/json")) {
     const body = (await req.json()) as HandleUploadBody;
     try {

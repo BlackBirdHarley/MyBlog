@@ -6,6 +6,7 @@ import { z } from "zod";
 const pinSchema = z.array(
   z.object({
     imageUrl: z.string().min(1),
+    altText: z.string().nullable().optional(),
     description: z.string().nullable().optional(),
     sortOrder: z.number().int(),
   })
@@ -40,6 +41,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       data: parsed.data.map((p) => ({
         articleId: id,
         imageUrl: p.imageUrl,
+        altText: p.altText ?? null,
         description: p.description ?? null,
         sortOrder: p.sortOrder,
       })),

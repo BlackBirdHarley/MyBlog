@@ -15,7 +15,7 @@ const createSchema = z.object({
   publishedAt: z.string().datetime().optional().nullable(),
   scheduledAt: z.string().datetime().optional().nullable(),
   featured: z.boolean().optional(),
-  categoryId: z.string().optional().nullable(),
+  categoryId: z.string().min(1, "Category is required"),
   tagIds: z.array(z.string()).optional(),
   heroImageId: z.string().optional().nullable(),
   pinterestImageId: z.string().optional().nullable(),

@@ -65,7 +65,7 @@ export function ArticleCard({ article, variant = "default" }: ArticleCardProps) 
             <span />
           )}
           <span className="text-[11px] font-semibold text-[#FF9B7A] uppercase tracking-[0.06em] group-hover:translate-x-0.5 transition-transform">
-            Read →
+            Read &rarr;
           </span>
         </div>
       </div>

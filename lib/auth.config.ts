@@ -2,6 +2,7 @@ import type { NextAuthConfig } from "next-auth";
 
 // Edge-safe config: no Prisma, no Node.js-only modules
 export const authConfig: NextAuthConfig = {
+  trustHost: true,
   pages: {
     signIn: "/admin/login",
   },

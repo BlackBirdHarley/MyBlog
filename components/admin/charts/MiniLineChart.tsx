@@ -7,7 +7,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid,
 } from "recharts";
 
 interface Props {

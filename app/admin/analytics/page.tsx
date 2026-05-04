@@ -19,7 +19,7 @@ const PERIODS = [
 ];
 
 function Delta({ value }: { value: number | null }) {
-  if (value === null) return <span className="text-xs text-gray-400">—</span>;
+  if (value === null) return <span className="text-xs text-gray-400">-</span>;
   if (value === 0) return <span className="flex items-center gap-0.5 text-xs text-gray-400"><Minus size={12} /> 0%</span>;
   return value > 0 ? (
     <span className="flex items-center gap-0.5 text-xs text-emerald-600"><TrendingUp size={12} /> +{value}%</span>

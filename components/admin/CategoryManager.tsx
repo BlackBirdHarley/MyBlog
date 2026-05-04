@@ -88,7 +88,7 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
                   <>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">{cat.name}</p>
-                      <p className="text-xs text-gray-400">{cat._count.articles} article{cat._count.articles !== 1 ? "s" : ""} · /{cat.slug}</p>
+                      <p className="text-xs text-gray-400">{cat._count.articles} article{cat._count.articles !== 1 ? "s" : ""} / /{cat.slug}</p>
                     </div>
                     <button onClick={() => { setEditingId(cat.id); setEditName(cat.name); setEditDesc(cat.description ?? ""); }} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-md">
                       <Pencil size={14} />

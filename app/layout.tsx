@@ -33,6 +33,12 @@ export async function generateMetadata(): Promise<Metadata> {
       card: "summary_large_image",
       ...(settings?.twitterHandle ? { site: settings.twitterHandle } : {}),
     },
+    icons: {
+      icon: settings?.faviconUrl
+        ? `${settings.faviconUrl}?v=${settings.faviconUpdatedAt?.getTime() ?? Date.now()}`
+        : "/favicon.ico",
+      apple: "/apple-icon.png",
+    },
     robots: {
       index: true,
       follow: true,

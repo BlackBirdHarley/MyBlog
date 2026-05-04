@@ -96,7 +96,7 @@ export default async function BlogPage({
           <div className="text-center py-24 border border-dashed border-[#E4E9EC] rounded-[18px]">
             <p className="text-[13px] text-[#9AA3AA]">No articles found.</p>
             <Link href="/blog" className="mt-4 inline-flex text-[11px] font-semibold text-[#FF9B7A] uppercase tracking-[0.08em] hover:underline">
-              Clear filters →
+              Clear filters &rarr;
             </Link>
           </div>
         ) : (

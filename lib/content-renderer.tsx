@@ -4,8 +4,9 @@ import { Mark, Node, mergeAttributes } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table";
 import { ImageAlignExtension } from "@/components/admin/editor/extensions/ImageAlign";
+import { LineHeightExtension } from "@/components/admin/editor/extensions/LineHeight";
 
-// Server-side callout renderer — mirrors the editor extension
+// Server-side callout renderer - mirrors the editor extension
 const CalloutRenderer = Node.create({
   name: "callout",
   group: "block",
@@ -22,7 +23,7 @@ const CalloutRenderer = Node.create({
   },
 });
 
-// Server-side affiliate link extension — renders as /go/[linkId] with proper rel attributes
+// Server-side affiliate link extension - renders as /go/[linkId] with proper rel attributes
 function makeAffiliateLinkRenderer(articleId?: string) {
   return Mark.create({
     name: "affiliateLink",
@@ -66,6 +67,7 @@ function buildExtensions(articleId?: string) {
     TableHeader,
     makeAffiliateLinkRenderer(articleId),
     CalloutRenderer,
+    LineHeightExtension,
   ];
 }
 
@@ -109,6 +111,16 @@ export function addHeadingIds(html: string): string {
     const text = inner.replace(/<[^>]+>/g, "");
     const id = headingTextToId(text);
     return `<h${level}${attrs} id="${id}">${inner}</h${level}>`;
+  });
+}
+
+export function addImageAltTooltips(html: string): string {
+  return html.replace(/<img\b([^>]*?)>/gi, (match, attrs) => {
+    const altMatch = attrs.match(/\salt=(["'])(.*?)\1/i);
+    const alt = altMatch?.[2]?.trim();
+    if (!alt) return match;
+    const escapedAlt = alt.replace(/"/g, "&quot;");
+    return `<span class="article-image-alt-hover block" data-alt="${escapedAlt}">${match}</span>`;
   });
 }
 

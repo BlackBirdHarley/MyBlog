@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { renderContent, extractHeadings, addHeadingIds } from "@/lib/content-renderer";
+import { renderContent, extractHeadings, addHeadingIds, addImageAltTooltips } from "@/lib/content-renderer";
 import { ClassicLayout } from "@/components/public/layouts/ClassicLayout";
 import { ListicleLayout } from "@/components/public/layouts/ListicleLayout";
 import { UltimateGuideLayout } from "@/components/public/layouts/UltimateGuideLayout";
@@ -90,7 +90,7 @@ export default async function ArticlePage({ params }: Props) {
   const articleUrl = `${siteUrl}/blog/${slug}`;
 
   const contentJson = (article.content ?? {}) as object;
-  const rawHtml = renderContent(contentJson, article.id);
+  const rawHtml = addImageAltTooltips(renderContent(contentJson, article.id));
 
   const related = article.categoryId
     ? await prisma.article.findMany({
@@ -131,7 +131,7 @@ export default async function ArticlePage({ params }: Props) {
     siteUrl,
     pinterestUserId,
     pins: pinterestUserId
-      ? article.pins.map((p) => ({ imageUrl: p.imageUrl, description: p.description }))
+      ? article.pins.map((p) => ({ imageUrl: p.imageUrl, altText: p.altText, description: p.description }))
       : [],
   };
 

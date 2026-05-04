@@ -2,10 +2,12 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { PinImageUpload } from "./PinImageUpload";
+import { useState } from "react";
 
 export interface PinItem {
   key: string;
   imageUrl: string | null;
+  altText: string;
   description: string;
 }
 
@@ -15,8 +17,10 @@ interface PinterestPinsProps {
 }
 
 export function PinterestPins({ value, onChange }: PinterestPinsProps) {
+  const [savedAltKey, setSavedAltKey] = useState<string | null>(null);
+
   function addPin() {
-    onChange([...value, { key: crypto.randomUUID(), imageUrl: null, description: "" }]);
+    onChange([...value, { key: crypto.randomUUID(), imageUrl: null, altText: "", description: "" }]);
   }
 
   function remove(key: string) {
@@ -33,7 +37,8 @@ export function PinterestPins({ value, onChange }: PinterestPinsProps) {
         <div key={pin.key} className="flex gap-3 items-start p-3 bg-gray-50 rounded-xl border border-gray-200">
           <PinImageUpload
             value={pin.imageUrl}
-            onChange={(url) => update(pin.key, { imageUrl: url })}
+            altText={pin.altText}
+            onChange={(url, uploadedAlt) => update(pin.key, { imageUrl: url, ...(uploadedAlt !== undefined ? { altText: uploadedAlt } : {}) })}
           />
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-center justify-between">
@@ -50,9 +55,27 @@ export function PinterestPins({ value, onChange }: PinterestPinsProps) {
               value={pin.description}
               onChange={(e) => update(pin.key, { description: e.target.value })}
               rows={3}
-              placeholder="Pin description…"
+              placeholder="Pin description..."
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none bg-white"
             />
+            <div className="flex gap-2">
+              <input
+                value={pin.altText}
+                onChange={(e) => update(pin.key, { altText: e.target.value })}
+                placeholder="ALT text for this pin image"
+                className="min-w-0 flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setSavedAltKey(pin.key);
+                  setTimeout(() => setSavedAltKey(null), 1600);
+                }}
+                className="rounded-lg bg-gray-900 px-3 py-2 text-xs font-medium text-white hover:bg-gray-800"
+              >
+                {savedAltKey === pin.key ? "Saved" : "Save"}
+              </button>
+            </div>
           </div>
         </div>
       ))}

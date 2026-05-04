@@ -21,7 +21,7 @@ interface UltimateGuideLayoutProps {
   headings: TOCEntry[];
   siteUrl: string;
   pinterestUserId?: string | null;
-  pins?: { imageUrl: string; description: string | null }[];
+  pins?: { imageUrl: string; altText?: string | null; description: string | null }[];
   relatedArticles?: Array<{
     slug: string; title: string; excerpt: string | null; publishedAt: Date | null;
     heroImage: { url: string; altText: string | null } | null;
@@ -61,7 +61,10 @@ export function UltimateGuideLayout({
       </header>
 
       {article.heroImage && (
-        <div className="relative w-full aspect-21/9 overflow-hidden mb-10 bg-gray-100">
+        <div
+          className="article-hero-bleed article-image-alt-hover mb-10"
+          data-alt={article.heroImage.altText ?? article.title}
+        >
           <Image
             src={article.heroImage.url}
             alt={article.heroImage.altText ?? article.title}
@@ -110,7 +113,7 @@ export function UltimateGuideLayout({
           )}
 
           <div
-            className="prose prose-gray prose-lg max-w-none prose-a:text-rose-600 prose-a:no-underline hover:prose-a:underline prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-12 prose-h2:scroll-mt-8 prose-h3:scroll-mt-8 flow-root"
+            className="article-prose prose prose-gray prose-lg max-w-none prose-a:text-rose-600 prose-a:no-underline hover:prose-a:underline prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-12 prose-h2:scroll-mt-8 prose-h3:scroll-mt-8 flow-root"
             dangerouslySetInnerHTML={{ __html: contentHtml }}
           />
 

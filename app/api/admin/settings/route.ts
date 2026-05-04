@@ -12,6 +12,8 @@ const schema = z.object({
   defaultDisclosure: z.string().min(1),
   footerText: z.string().optional().nullable(),
   pinterestUserId: z.string().optional().nullable(),
+  siteLogoUrl: z.string().optional().nullable(),
+  faviconUrl: z.string().optional().nullable(),
 });
 
 export async function GET() {

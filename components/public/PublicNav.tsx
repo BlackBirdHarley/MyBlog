@@ -1,6 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 
-export function PublicNav({ siteName }: { siteName: string }) {
+export function PublicNav({ siteName, logoUrl }: { siteName: string; logoUrl?: string | null }) {
   const initials = siteName
     .split(" ")
     .map((w) => w[0])
@@ -13,15 +14,26 @@ export function PublicNav({ siteName }: { siteName: string }) {
       <div className="px-8 lg:px-14 h-22 flex items-center justify-between gap-6">
         {/* Logo + brand */}
         <Link href="/" className="flex items-center gap-3 shrink-0">
-          <div className="w-9 h-9 rounded-full bg-[#26313A] flex items-center justify-center shrink-0">
-            <span className="text-white text-[11px] font-bold tracking-wider">{initials}</span>
+          <div className="relative w-9 h-9 rounded-full bg-[#26313A] flex items-center justify-center shrink-0 overflow-hidden">
+            {logoUrl ? (
+              <Image
+                src={logoUrl}
+                alt={`${siteName} logo`}
+                fill
+                priority
+                className="object-cover"
+                sizes="36px"
+              />
+            ) : (
+              <span className="text-white text-[11px] font-bold tracking-wider">{initials}</span>
+            )}
           </div>
           <span className="text-[#1E252B] font-semibold text-[15px] tracking-[-0.01em] hidden sm:block">
             {siteName}
           </span>
         </Link>
 
-        {/* Desktop navigation — all original menu items preserved */}
+        {/* Desktop navigation - all original menu items preserved */}
         <nav className="hidden md:flex items-center gap-8 lg:gap-10">
           <Link href="/blog" className="text-[11px] uppercase tracking-[0.08em] text-[#7D8790] hover:text-[#1E252B] transition-colors font-medium">
             Blog
@@ -37,7 +49,7 @@ export function PublicNav({ siteName }: { siteName: string }) {
           </Link>
         </nav>
 
-        {/* Mobile navigation — most important items only */}
+        {/* Mobile navigation - most important items only */}
         <nav className="flex md:hidden items-center gap-5">
           <Link href="/blog" className="text-[11px] uppercase tracking-[0.08em] text-[#7D8790] hover:text-[#1E252B] transition-colors font-medium">
             Blog

@@ -9,7 +9,6 @@ import {
   Link2,
   ImageIcon,
   BarChart2,
-  Tag,
   FolderOpen,
   Settings,
   FileEdit,
@@ -23,15 +22,14 @@ const nav = [
   { href: "/admin/articles", label: "Articles", icon: FileText },
   { href: "/admin/links", label: "Affiliate Links", icon: Link2 },
   { href: "/admin/media", label: "Media", icon: ImageIcon },
-  { href: "/admin/categories", label: "Categories", icon: FolderOpen },
-  { href: "/admin/tags", label: "Tags", icon: Tag },
+  { href: "/admin/categories", label: "Taxonomy", icon: FolderOpen },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart2 },
   { href: "/admin/settings", label: "Settings", icon: Settings },
   { href: "/admin/pages", label: "Pages", icon: FileEdit },
   { href: "/admin/help", label: "Help", icon: HelpCircle },
 ];
 
-export function Sidebar() {
+export function Sidebar({ showSignOut = true }: { showSignOut?: boolean }) {
   const pathname = usePathname();
 
   function isActive(href: string, exact?: boolean) {
@@ -68,15 +66,17 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-3 py-4 border-t border-gray-800">
-        <button
-          onClick={() => signOut({ callbackUrl: "/admin/login" })}
-          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition-colors"
-        >
-          <LogOut size={16} />
-          Sign out
-        </button>
-      </div>
+      {showSignOut && (
+        <div className="px-3 py-4 border-t border-gray-800">
+          <button
+            onClick={() => signOut({ callbackUrl: "/admin/login" })}
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition-colors"
+          >
+            <LogOut size={16} />
+            Sign out
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

@@ -49,7 +49,7 @@ export function StaticPageForm({ pageKey, initialTitle, initialContent }: Static
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
-        <TipTapEditor content={content} onChange={setContent} placeholder="Start writing…" />
+        <TipTapEditor content={content} onChange={setContent} placeholder="Start writing..." />
       </div>
 
       <div className="flex items-center gap-3 pt-2">

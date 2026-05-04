@@ -18,7 +18,7 @@ interface ClassicLayoutProps {
   contentHtml: string;
   siteUrl: string;
   pinterestUserId?: string | null;
-  pins?: { imageUrl: string; description: string | null }[];
+  pins?: { imageUrl: string; altText?: string | null; description: string | null }[];
   relatedArticles?: Array<{
     slug: string; title: string; excerpt: string | null; publishedAt: Date | null;
     heroImage: { url: string; altText: string | null } | null;
@@ -31,10 +31,13 @@ export function ClassicLayout({ article, contentHtml, siteUrl, pinterestUserId, 
   const mins = readingTime(plainText);
 
   return (
-    <article className="max-w-4xl mx-auto px-4 py-12">
+    <article className="max-w-7xl mx-auto px-4 lg:px-8 py-12">
       {/* Hero */}
       {article.heroImage && (
-        <div className="relative w-full aspect-video overflow-hidden mb-8 bg-gray-100">
+        <div
+          className="article-hero-bleed article-image-alt-hover mb-8"
+          data-alt={article.heroImage.altText ?? article.title}
+        >
           <Image
             src={article.heroImage.url}
             alt={article.heroImage.altText ?? article.title}
@@ -47,7 +50,7 @@ export function ClassicLayout({ article, contentHtml, siteUrl, pinterestUserId, 
       )}
 
       {/* Meta */}
-      <header className="mb-8">
+      <header className="max-w-3xl mx-auto mb-8">
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400 mb-3">
           {article.category && (
             <Link href={`/categories/${article.category.slug}`} className="text-rose-600 font-medium hover:underline">
@@ -66,16 +69,79 @@ export function ClassicLayout({ article, contentHtml, siteUrl, pinterestUserId, 
       </header>
 
       {/* Body */}
-      <div
-        className="prose prose-gray prose-lg max-w-none prose-a:text-rose-600 prose-a:no-underline hover:prose-a:underline prose-headings:font-bold flow-root"
-        dangerouslySetInnerHTML={{ __html: contentHtml }}
-      />
+      <div className="grid grid-cols-1 xl:grid-cols-[180px_minmax(0,760px)_240px] gap-8 items-start">
+        <aside className="hidden xl:block sticky top-8">
+          <div className="border-y border-gray-100 py-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Article</p>
+            <div className="space-y-2 text-sm text-gray-500">
+              {article.category && (
+                <Link href={`/categories/${article.category.slug}`} className="block text-rose-600 font-medium hover:underline">
+                  {article.category.name}
+                </Link>
+              )}
+              {article.publishedAt && <p>{formatDate(article.publishedAt)}</p>}
+              <p>{mins} min read</p>
+            </div>
+          </div>
+          {article.tags.length > 0 && (
+            <div className="mt-5">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Tags</p>
+              <div className="flex flex-wrap gap-2">
+                {article.tags.map((t) => (
+                  <Link
+                    key={t.slug}
+                    href={`/tags/${t.slug}`}
+                    className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 text-xs hover:bg-gray-200 transition-colors"
+                  >
+                    {t.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </aside>
 
-      <PinterestPinsBar pins={pins} pageUrl={`${siteUrl}/blog/${article.slug}`} pinterestUserId={pinterestUserId ?? null} />
+        <div className="min-w-0">
+          <div
+            className="article-prose prose prose-gray prose-lg max-w-none prose-a:text-rose-600 prose-a:no-underline hover:prose-a:underline prose-headings:font-bold flow-root"
+            dangerouslySetInnerHTML={{ __html: contentHtml }}
+          />
+          <div className="xl:hidden">
+            <PinterestPinsBar pins={pins} pageUrl={`${siteUrl}/blog/${article.slug}`} pinterestUserId={pinterestUserId ?? null} />
+          </div>
+        </div>
+
+        <aside className="hidden xl:block sticky top-8 space-y-6">
+          {pins.length > 0 && (
+            <PinterestPinsBar pins={pins} pageUrl={`${siteUrl}/blog/${article.slug}`} pinterestUserId={pinterestUserId ?? null} />
+          )}
+          {relatedArticles.length > 0 && (
+            <section>
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Related</h2>
+              <div className="space-y-3">
+                {relatedArticles.slice(0, 3).map((a) => (
+                  <Link
+                    key={a.slug}
+                    href={`/blog/${a.slug}`}
+                    className="group block rounded-lg border border-gray-100 p-3 hover:border-gray-200 hover:bg-gray-50 transition-all"
+                  >
+                    {a.heroImage && (
+                      <div className="relative w-full aspect-video mb-2 overflow-hidden bg-gray-100">
+                        <Image src={a.heroImage.url} alt={a.heroImage.altText ?? a.title} fill className="object-cover" sizes="220px" />
+                      </div>
+                    )}
+                    <p className="text-sm font-medium text-gray-900 line-clamp-3 group-hover:text-gray-600">{a.title}</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+        </aside>
+      </div>
 
       {/* Tags */}
       {article.tags.length > 0 && (
-        <div className="clear-both flex flex-wrap gap-2 mt-10 pt-8 border-t border-gray-200">
+        <div className="xl:hidden clear-both flex flex-wrap gap-2 mt-10 pt-8 border-t border-gray-200">
           {article.tags.map((t) => (
             <Link
               key={t.slug}
@@ -90,7 +156,7 @@ export function ClassicLayout({ article, contentHtml, siteUrl, pinterestUserId, 
 
       {/* Related */}
       {relatedArticles.length > 0 && (
-        <section className="mt-16 pt-8 border-t border-gray-100">
+        <section className="xl:hidden mt-16 pt-8 border-t border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">Related articles</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {relatedArticles.map((a) => (

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Check } from "lucide-react";
+import { Loader2, Check, Upload, ImageIcon } from "lucide-react";
+import Image from "next/image";
 
 const schema = z.object({
   siteName: z.string().min(1, "Required"),
@@ -16,6 +17,8 @@ const schema = z.object({
   defaultDisclosure: z.string().min(1, "Required"),
   footerText: z.string().optional(),
   pinterestUserId: z.string().optional(),
+  siteLogoUrl: z.string().optional(),
+  faviconUrl: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -26,11 +29,16 @@ interface SettingsFormProps {
 
 export function SettingsForm({ initialData }: SettingsFormProps) {
   const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [saved, setSaved] = useState(false);
+  const [brandUploading, setBrandUploading] = useState(false);
+  const [brandError, setBrandError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
+    setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -40,6 +48,31 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
       ...initialData,
     },
   });
+
+  const siteLogoUrl = useWatch({ control, name: "siteLogoUrl" });
+  const faviconUrl = useWatch({ control, name: "faviconUrl" });
+
+  async function uploadBrand(file: File) {
+    setBrandUploading(true);
+    setBrandError(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/admin/settings/brand", { method: "POST", body: formData });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Upload failed");
+
+      setValue("siteLogoUrl", data.siteLogoUrl ?? "", { shouldDirty: true });
+      setValue("faviconUrl", data.faviconUrl ?? "/favicon.ico", { shouldDirty: true });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+      router.refresh();
+    } catch (e) {
+      setBrandError(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setBrandUploading(false);
+    }
+  }
 
   async function onSubmit(data: FormValues) {
     const res = await fetch("/api/admin/settings", {
@@ -53,6 +86,8 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
         twitterHandle: data.twitterHandle || null,
         footerText: data.footerText || null,
         pinterestUserId: data.pinterestUserId || null,
+        siteLogoUrl: data.siteLogoUrl || null,
+        faviconUrl: data.faviconUrl || null,
       }),
     });
 
@@ -79,6 +114,52 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
           <label className={label}>Site name <span className="text-red-500">*</span></label>
           <input {...register("siteName")} className={field} placeholder="My Awesome Blog" />
           {errors.siteName && <p className={err}>{errors.siteName.message}</p>}
+        </div>
+
+        <div>
+          <label className={label}>Logo and favicon</label>
+          <div className="rounded-xl border border-gray-200 bg-white p-4">
+            <div className="flex items-center gap-4">
+              <div className="relative w-16 h-16 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center shrink-0">
+                {siteLogoUrl ? (
+                  <Image src={siteLogoUrl} alt="Site logo preview" fill className="object-cover" sizes="64px" />
+                ) : (
+                  <ImageIcon size={24} className="text-gray-300" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={brandUploading}
+                  className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                >
+                  {brandUploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
+                  {brandUploading ? "Uploading..." : "Upload logo"}
+                </button>
+                <p className={hint}>PNG, JPG, WebP, SVG or AVIF up to 5MB. The same image is converted into favicon automatically.</p>
+                {faviconUrl && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    Favicon generated: <span className="font-mono">{faviconUrl}</span>
+                  </p>
+                )}
+                {brandError && <p className={err}>{brandError}</p>}
+              </div>
+            </div>
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) uploadBrand(file);
+              e.target.value = "";
+            }}
+          />
+          <input type="hidden" {...register("siteLogoUrl")} />
+          <input type="hidden" {...register("faviconUrl")} />
         </div>
 
         <div>
@@ -113,7 +194,7 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
         <div>
           <label className={label}>Pinterest user ID</label>
           <input {...register("pinterestUserId")} className={field} placeholder="yourusername" />
-          <p className={hint}>Your Pinterest username — used to attribute saved pins.</p>
+          <p className={hint}>Your Pinterest username - used to attribute saved pins.</p>
         </div>
       </section>
 

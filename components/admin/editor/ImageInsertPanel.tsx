@@ -17,6 +17,7 @@ export function ImageInsertPanel({ editor }: { editor: Editor }) {
   const [tab, setTab] = useState<"upload" | "url">("upload");
   const [align, setAlign] = useState<ImageAlign>("center");
   const [url, setUrl] = useState("");
+  const [altText, setAltText] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -30,10 +31,11 @@ export function ImageInsertPanel({ editor }: { editor: Editor }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  function insert(src: string) {
-    editor.chain().focus().insertContent({ type: "image", attrs: { src, align } }).run();
+  function insert(src: string, alt = altText) {
+    editor.chain().focus().insertContent({ type: "image", attrs: { src, alt, align } }).run();
     setOpen(false);
     setUrl("");
+    setAltText("");
     setError(null);
   }
 
@@ -43,10 +45,11 @@ export function ImageInsertPanel({ editor }: { editor: Editor }) {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("altText", altText);
       const res = await fetch("/api/admin/media/upload", { method: "POST", body: formData });
       if (!res.ok) throw new Error((await res.json()).error ?? "Upload failed");
       const media = await res.json();
-      insert(media.url);
+      insert(media.url, media.altText ?? altText);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -114,6 +117,17 @@ export function ImageInsertPanel({ editor }: { editor: Editor }) {
           </div>
 
           {/* Upload or URL */}
+          <div>
+            <p className="text-xs text-gray-400 mb-1.5">ALT text</p>
+            <input
+              value={altText}
+              onChange={(e) => setAltText(e.target.value)}
+              placeholder="Describe the image"
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+            />
+          </div>
+
+          {/* Upload or URL */}
           {tab === "upload" ? (
             <button
               type="button"
@@ -122,7 +136,7 @@ export function ImageInsertPanel({ editor }: { editor: Editor }) {
               className="w-full flex items-center justify-center gap-2 py-2 border-2 border-dashed border-gray-200 rounded-lg text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors disabled:opacity-50"
             >
               {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-              {uploading ? "Uploading…" : "Choose file"}
+              {uploading ? "Uploading..." : "Choose file"}
             </button>
           ) : (
             <div className="space-y-2">
@@ -130,7 +144,7 @@ export function ImageInsertPanel({ editor }: { editor: Editor }) {
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://…"
+                placeholder="https://..."
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
                 onKeyDown={(e) => { if (e.key === "Enter" && url) { e.preventDefault(); insert(url); } }}
               />

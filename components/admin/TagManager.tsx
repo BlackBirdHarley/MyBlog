@@ -89,7 +89,7 @@ export function TagManager({ initialTags, categories }: TagManagerProps) {
         <input
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          placeholder="New tag name…"
+          placeholder="New tag name..."
           className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
           onKeyDown={(e) => { if (e.key === "Enter") create(); }}
         />
