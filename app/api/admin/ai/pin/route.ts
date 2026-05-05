@@ -172,7 +172,10 @@ Create a Pinterest-ready package:
 - description: 120-220 characters, natural SEO, no URLs and no "visit/read more" link text because the article URL is stored in a separate linkUrl field.
 - altText: useful accessibility text for the generated image.
 - tags: 5-8 concise Pinterest tags without #.
-- imagePrompt: detailed visual prompt for a vertical 2:3 marketing pin. If a reference image is provided, preserve its winning style, layout, color mood, and composition without copying brands or text exactly.
+- imagePrompt: detailed visual prompt for a vertical 2:3 marketing pin.
+${input.hasReference
+  ? "- imagePrompt must adapt the uploaded reference image as the PRIMARY visual source: keep its main subject, camera angle, composition, color mood, material style, and overall layout. Use article context only for SEO copy and overlay text. Do not invent a different pantry scene unless the user explicitly asks."
+  : "- imagePrompt should create an original visual concept based on the article topic."}
 
 JSON shape:
 {"title":"...","overlayText":"...","description":"...","altText":"...","tags":["..."],"imagePrompt":"..."}`;
@@ -206,12 +209,31 @@ function stripUrls(value: string) {
 }
 
 function buildImagePrompt(copy: PinCopy, userPrompt: string, hasReference: boolean) {
+  if (hasReference) {
+    return `Transform the uploaded reference image into a vertical 2:3 Pinterest pin graphic.
+
+Reference priority:
+- Treat the uploaded image as the PRIMARY visual source.
+- Preserve the reference image's main subject, product/room/object identity, camera angle, composition, visual hierarchy, color palette, lighting mood, texture/material style, and overall design language.
+- Do not imitate any previously generated pin for this article. Do not default to a generic pantry photo unless that is what the uploaded reference shows.
+- Use the article topic only to make the pin SEO-relevant and to choose short overlay text.
+- If the user provided a prompt, follow it after preserving the reference image.
+
+Pin copy:
+- Primary overlay text: "${copy.overlayText}"
+- Pin title context: ${copy.title}
+${userPrompt ? `- User direction: ${userPrompt}` : ""}
+
+Visual direction from SEO copy: ${copy.imagePrompt}
+
+Design requirements: vertical 2:3 Pinterest marketing design, premium editorial look, clean readable text area, no fake logos, no watermark, no distorted text, no clutter.`;
+  }
+
   return `Create a vertical 2:3 Pinterest pin graphic for a home organization blog.
 Visual direction: ${copy.imagePrompt}
 Primary overlay text: "${copy.overlayText}"
 Pin title context: ${copy.title}
 ${userPrompt ? `Additional user direction: ${userPrompt}` : ""}
-${hasReference ? "Use the uploaded reference as style/product/composition guidance, but generate an original design." : ""}
 Design requirements: premium editorial look, bright natural light, clean composition, realistic materials, readable text area, no fake logos, no watermark, no distorted text, no clutter.`;
 }
 
