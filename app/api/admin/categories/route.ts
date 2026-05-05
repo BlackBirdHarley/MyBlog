@@ -27,11 +27,36 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  if (!parsed.success) {
+    const { fieldErrors, formErrors } = parsed.error.flatten();
+    const messages = [
+      ...formErrors,
+      ...Object.entries(fieldErrors).flatMap(([field, errors]) =>
+        errors.map((error) => `${field}: ${error}`)
+      ),
+    ];
+    return NextResponse.json(
+      { error: messages.join("; ") || "Invalid category data" },
+      { status: 400 }
+    );
+  }
 
-  const slug = parsed.data.slug || slugify(parsed.data.name);
+  const slug = await uniqueCategorySlug(parsed.data.slug || slugify(parsed.data.name));
   const category = await prisma.category.create({
     data: { ...parsed.data, slug },
   });
   return NextResponse.json(category, { status: 201 });
+}
+
+async function uniqueCategorySlug(baseSlug: string) {
+  const cleanSlug = slugify(baseSlug) || "category";
+  let slug = cleanSlug;
+  let suffix = 2;
+
+  while (await prisma.category.findUnique({ where: { slug }, select: { id: true } })) {
+    slug = `${cleanSlug}-${suffix}`;
+    suffix += 1;
+  }
+
+  return slug;
 }

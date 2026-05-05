@@ -52,26 +52,29 @@ export function TaxonomyManager({ initialCategories, articles }: TaxonomyManager
     if (!newCategoryName.trim()) return;
     setLoading(true);
     setMessage("");
-    const res = await fetch("/api/admin/categories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: newCategoryName,
-        description: newCategoryDescription || null,
-      }),
-    });
-    if (res.ok) {
-      const category = await res.json();
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newCategoryName,
+          description: newCategoryDescription || null,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(readErrorMessage(data, "Could not create category."));
+      const category = data;
       const next = { ...category, tags: [], _count: { articles: 0 } };
       setCategories((prev) => [...prev, next].sort((a, b) => a.name.localeCompare(b.name)));
       setSelected(next.id);
       setNewCategoryName("");
       setNewCategoryDescription("");
       setMessage("Category created.");
-    } else {
-      setMessage("Could not create category.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not create category.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function createTag() {
@@ -345,4 +348,23 @@ function countClass(active: boolean) {
     "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
     active ? "bg-white/15 text-white" : "bg-gray-100 text-gray-500"
   );
+}
+
+function readErrorMessage(data: unknown, fallback: string) {
+  if (!data || typeof data !== "object") return fallback;
+  const error = (data as { error?: unknown }).error;
+  if (typeof error === "string") return error;
+  if (!error || typeof error !== "object") return fallback;
+
+  const fieldErrors = (error as { fieldErrors?: Record<string, string[]> }).fieldErrors;
+  if (fieldErrors) {
+    const messages = Object.entries(fieldErrors)
+      .flatMap(([field, messages]) => messages.map((message) => `${field}: ${message}`));
+    if (messages.length > 0) return messages.join("; ");
+  }
+
+  const formErrors = (error as { formErrors?: string[] }).formErrors;
+  if (formErrors?.length) return formErrors.join("; ");
+
+  return fallback;
 }
