@@ -3,7 +3,7 @@ import { formatDate } from "@/lib/utils";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import Link from "next/link";
-import { PenSquare, Plus, Eye, BarChart2 } from "lucide-react";
+import { PenSquare, Plus, Eye, BarChart2, Download } from "lucide-react";
 import { ArticleDeleteButton } from "@/components/admin/ArticleDeleteButton";
 
 export default async function ArticlesPage({
@@ -47,13 +47,22 @@ export default async function ArticlesPage({
         title="Articles"
         description={`${total} total`}
         action={
-          <Link
-            href="/admin/articles/new"
-            className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
-          >
-            <Plus size={16} />
-            New article
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href="/api/admin/export/articles-pins"
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              <Download size={16} />
+              Export Excel
+            </a>
+            <Link
+              href="/admin/articles/new"
+              className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+            >
+              <Plus size={16} />
+              New article
+            </Link>
+          </div>
         }
       />
 
