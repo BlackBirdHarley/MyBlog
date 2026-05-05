@@ -8,7 +8,6 @@ import {
 import { FileText, Link2, BarChart2, PenSquare, TrendingUp, TrendingDown, Minus, ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { FullLineChart } from "@/components/admin/charts/FullLineChart";
-import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 
 type DashboardArticle = Awaited<ReturnType<typeof getDashboardArticles>>[number];
@@ -64,7 +63,7 @@ export default async function AdminDashboard({
           title: true,
           slug: true,
           status: true,
-          pins: { orderBy: { sortOrder: "asc" } },
+          pins: { include: { media: true }, orderBy: { sortOrder: "asc" } },
         },
       })
     : null;
@@ -212,12 +211,10 @@ export default async function AdminDashboard({
                 {selectedArticle.pins.map((pin, index) => (
                   <div key={pin.id} className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
                     <div className="relative aspect-[2/3] bg-gray-100">
-                      <Image
-                        src={pin.imageUrl}
+                      <img
+                        src={pin.media?.url ?? pin.imageUrl}
                         alt={pin.altText ?? pin.description ?? `Pin ${index + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 50vw, 180px"
+                        className="h-full w-full object-cover"
                       />
                     </div>
                     <div className="p-2">
