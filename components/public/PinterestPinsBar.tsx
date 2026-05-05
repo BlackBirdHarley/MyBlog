@@ -3,8 +3,11 @@ import { PinterestButton } from "./PinterestButton";
 
 interface Pin {
   imageUrl: string;
+  title?: string | null;
   altText?: string | null;
   description: string | null;
+  linkUrl?: string | null;
+  taggedTopics?: string[];
 }
 
 interface PinterestPinsBarProps {
@@ -22,15 +25,13 @@ export function PinterestPinsBar({ pins, pageUrl, pinterestUserId }: PinterestPi
       <div className="flex flex-wrap gap-4">
         {pins.map((pin, i) => (
           <div key={i} className="flex flex-col items-center gap-2 w-24">
-            <div
-              className="article-image-alt-hover relative w-24 aspect-2/3 rounded-lg overflow-hidden border border-gray-100"
-              data-alt={pin.altText ?? pin.description ?? "Pin image"}
-            >
+            <div className="relative w-24 aspect-2/3 rounded-lg overflow-hidden border border-gray-100">
               <Image src={pin.imageUrl} alt={pin.altText ?? pin.description ?? "Pin image"} fill className="object-cover" sizes="96px" />
             </div>
             <PinterestButton
-              pageUrl={pageUrl}
+              pageUrl={resolvePinUrl(pin.linkUrl, pageUrl)}
               imageUrl={pin.imageUrl}
+              title={pin.title}
               description={pin.description ?? ""}
               pinterestUserId={pinterestUserId}
             />
@@ -39,4 +40,14 @@ export function PinterestPinsBar({ pins, pageUrl, pinterestUserId }: PinterestPi
       </div>
     </div>
   );
+}
+
+function resolvePinUrl(pinUrl: string | null | undefined, pageUrl: string) {
+  if (!pinUrl) return pageUrl;
+  if (/^https?:\/\//i.test(pinUrl)) return pinUrl;
+  try {
+    return new URL(pinUrl, pageUrl).toString();
+  } catch {
+    return pageUrl;
+  }
 }

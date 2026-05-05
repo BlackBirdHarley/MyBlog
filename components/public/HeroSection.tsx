@@ -21,21 +21,21 @@ interface HeroSectionProps {
 export function HeroSection({ article, siteName = "My Blog", siteDescription, heroDescription }: HeroSectionProps) {
   if (!article) {
     return (
-      <section className="bg-[#26313A] px-10 lg:px-16 py-24 lg:py-32 text-center">
-        <p className="text-[10px] uppercase tracking-[0.14em] text-[#FF9B7A] font-semibold mb-5">
+      <section className="bg-[#17201b] px-6 py-24 text-center sm:px-10 lg:px-16 lg:py-32">
+        <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#e9785f]">
           Welcome
         </p>
-        <h1 className="text-4xl lg:text-6xl font-bold text-white leading-[1.06] tracking-[-0.03em] mb-5 max-w-2xl mx-auto">
+        <h1 className="mx-auto mb-5 max-w-2xl text-4xl font-bold leading-[1.06] tracking-tight text-white lg:text-6xl">
           {siteName}
         </h1>
         {siteDescription && (
-          <p className="text-[15px] text-[#9AA3AA] max-w-md mx-auto leading-relaxed mb-8">
+          <p className="mx-auto mb-8 max-w-md text-[15px] leading-relaxed text-[#b9c7bd]">
             {siteDescription}
           </p>
         )}
         <Link
           href="/blog"
-          className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-[#FF9B7A] text-white text-[11px] font-bold uppercase tracking-[0.08em] hover:bg-[#F08060] transition-all hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(255,155,122,0.4)]"
+          className="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#17201b] transition-all hover:-translate-y-px hover:bg-[#f3f7f2]"
         >
           Start Reading
         </Link>
@@ -44,69 +44,57 @@ export function HeroSection({ article, siteName = "My Blog", siteDescription, he
   }
 
   return (
-    <section className="flex flex-col lg:flex-row min-h-130 lg:min-h-150">
-      {/* Dark info panel */}
-      <div className="w-full lg:w-[44%] bg-[#26313A] flex flex-col justify-between p-10 lg:p-14 shrink-0 order-2 lg:order-1">
-        <div className="animate-fade-up">
+    <section className="relative min-h-[560px] overflow-hidden bg-[#17201b]">
+      {article.heroImage ? (
+        <Image
+          src={article.heroImage.url}
+          alt={article.heroImage.altText ?? article.title}
+          fill
+          priority
+          className="object-cover opacity-88"
+          sizes="100vw"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-[#dbe5dc]" />
+      )}
+      <div className="absolute inset-0 bg-[#17201b]/58" />
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-linear-to-t from-[#17201b]/85 to-transparent" />
+
+      <div className="relative mx-auto flex min-h-[560px] max-w-7xl items-end px-5 py-12 sm:px-8 lg:px-10 lg:py-16">
+        <div className="max-w-3xl animate-fade-up">
           {article.category && (
             <Link href={`/categories/${article.category.slug}`}>
-              <span className="text-[10px] uppercase tracking-[0.14em] text-[#FF9B7A] font-semibold">
+              <span className="inline-flex rounded-full bg-white/14 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white ring-1 ring-white/20 backdrop-blur">
                 {article.category.name}
               </span>
             </Link>
           )}
           {!article.category && (
-            <span className="text-[10px] uppercase tracking-[0.14em] text-[#FF9B7A] font-semibold">
+            <span className="inline-flex rounded-full bg-white/14 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white ring-1 ring-white/20 backdrop-blur">
               Featured
             </span>
           )}
-          <h1 className="mt-4 text-3xl lg:text-[38px] xl:text-[44px] font-bold text-white leading-[1.08] tracking-tight text-center">
+          <h1 className="mt-5 text-4xl font-semibold leading-[1.03] tracking-tight text-white sm:text-5xl lg:text-6xl">
             {article.title}
           </h1>
           {heroDescription && (
-            <p className="mt-5 text-[15px] text-[#9AA3AA] leading-relaxed line-clamp-3 text-center italic">
+            <p className="mt-5 max-w-2xl text-[16px] leading-relaxed text-white/82 line-clamp-3">
               {heroDescription}
             </p>
           )}
-        </div>
-
-        <div className="animate-fade-up delay-200">
-          <div className="mb-6 h-px bg-white/10" />
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="mt-8 flex flex-wrap items-center gap-4">
             {article.publishedAt && (
-              <span className="text-[11px] uppercase tracking-[0.08em] text-[#7D8790]">
+              <span className="text-[11px] uppercase tracking-[0.08em] text-white/68">
                 {formatDate(article.publishedAt)}
               </span>
             )}
             <Link
               href={`/blog/${article.slug}`}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FF9B7A] text-white text-[11px] font-semibold uppercase tracking-[0.06em] hover:bg-[#F08060] transition-all hover:-translate-y-px hover:shadow-[0_6px_20px_rgba(255,155,122,0.4)]"
+              className="flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#17201b] transition-all hover:-translate-y-px hover:bg-[#f3f7f2]"
             >
-              Read Article &rarr;
+              Read Article
             </Link>
           </div>
-        </div>
-      </div>
-
-      {/* Image panel */}
-      <div className="relative order-1 lg:order-2 flex-1 min-h-65 lg:min-h-0 bg-[#D8E0E6]">
-        {article.heroImage ? (
-          <Image
-            src={article.heroImage.url}
-            alt={article.heroImage.altText ?? article.title}
-            fill
-            priority
-            className="object-cover"
-            sizes="(max-width: 1024px) 100vw, 65vw"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-linear-to-br from-[#DDE4E8] to-[#C8D4DC]" />
-        )}
-        {/* Floating badge */}
-        <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-sm">
-          <span className="text-[10px] uppercase tracking-widest text-[#1E252B] font-semibold">
-            Featured
-          </span>
         </div>
       </div>
     </section>

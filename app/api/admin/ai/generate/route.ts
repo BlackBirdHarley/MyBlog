@@ -62,7 +62,14 @@ async function generateSeoFix(body: {
   currentMetaTitle?: string;
   currentMetaDescription?: string;
   heroAlt?: string | null;
-  pins?: Array<{ imageUrl?: string; altText?: string; description?: string }>;
+  pins?: Array<{
+    imageUrl?: string;
+    title?: string;
+    altText?: string;
+    description?: string;
+    linkUrl?: string;
+    taggedTopics?: string[];
+  }>;
   categories?: Array<{ id: string; name: string }>;
   tags?: Array<{ id: string; name: string }>;
 }) {
@@ -75,8 +82,11 @@ async function generateSeoFix(body: {
   const pins = (body.pins ?? []).map((p, index) => ({
     index,
     hasImage: Boolean(p.imageUrl),
+    title: p.title ?? "",
     altText: p.altText ?? "",
     description: p.description ?? "",
+    linkUrl: p.linkUrl ?? "",
+    taggedTopics: p.taggedTopics ?? [],
   }));
 
   const prompt = `You are an SEO editor for a home organization blog.
@@ -116,7 +126,7 @@ JSON shape by field:
 - metaDescription: {"metaDescription":"..."}
 - heroAlt: {"heroAlt":"..."}
 - categoryTags: {"categoryId":"existing category id or empty string","tagIds":["existing tag id"]}
-- pinterestPins: {"pins":[{"index":0,"altText":"...","description":"..."}]}`;
+- pinterestPins: {"pins":[{"index":0,"title":"...","altText":"...","description":"...","linkUrl":"...","taggedTopics":["..."]}]}`;
 
   try {
     const response = await client.chat.completions.create({
@@ -127,11 +137,109 @@ JSON shape by field:
     });
 
     const content = response.choices[0]?.message?.content ?? "{}";
-    return NextResponse.json(JSON.parse(content));
+    const parsed = JSON.parse(content) as Record<string, unknown>;
+    return NextResponse.json(normalizeSeoFix(field, parsed, body));
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "SEO generation failed" },
       { status: 500 }
     );
   }
+}
+
+function normalizeSeoFix(
+  field: string,
+  data: Record<string, unknown>,
+  body: {
+    title?: string;
+    excerpt?: string;
+    pins?: Array<{ imageUrl?: string; altText?: string; description?: string }>;
+    categories?: Array<{ id: string; name: string }>;
+    tags?: Array<{ id: string; name: string }>;
+  }
+) {
+  const stringValue = (...keys: string[]) => {
+    for (const key of keys) {
+      const value = data[key];
+      if (typeof value === "string" && value.trim()) return value.trim();
+    }
+    return "";
+  };
+
+  if (field === "title") {
+    return { title: stringValue("title", "headline", "metaTitle", "meta_title") || body.title || "" };
+  }
+
+  if (field === "metaTitle") {
+    return { metaTitle: stringValue("metaTitle", "meta_title", "seoTitle", "seo_title", "title") || body.title || "" };
+  }
+
+  if (field === "metaDescription") {
+    return {
+      metaDescription:
+        stringValue("metaDescription", "meta_description", "seoDescription", "seo_description", "description") ||
+        body.excerpt ||
+        "",
+    };
+  }
+
+  if (field === "heroAlt") {
+    return { heroAlt: stringValue("heroAlt", "hero_alt", "altText", "alt_text", "alt") };
+  }
+
+  if (field === "categoryTags") {
+    const categoryId = stringValue("categoryId", "category_id");
+    const tagIds = Array.isArray(data.tagIds)
+      ? data.tagIds
+      : Array.isArray(data.tag_ids)
+        ? data.tag_ids
+        : [];
+    const validCategoryId = body.categories?.some((category) => category.id === categoryId) ? categoryId : "";
+    const validTagIds = tagIds.filter((id): id is string =>
+      typeof id === "string" && Boolean(body.tags?.some((tag) => tag.id === id))
+    );
+    return { categoryId: validCategoryId, tagIds: validTagIds };
+  }
+
+  if (field === "pinterestPins") {
+    const rawPins = Array.isArray(data.pins)
+      ? data.pins
+      : Array.isArray(data.pinterestPins)
+        ? data.pinterestPins
+        : data.pin && typeof data.pin === "object"
+          ? [data.pin]
+          : [];
+
+    const pins = rawPins.map((pin, index) => {
+      const item = pin && typeof pin === "object" ? pin as Record<string, unknown> : {};
+      const sourceIndex = typeof item.index === "number" ? item.index : index;
+      return {
+        index: sourceIndex,
+        title: typeof item.title === "string" ? item.title : "",
+        altText: typeof item.altText === "string" ? item.altText : typeof item.alt_text === "string" ? item.alt_text : "",
+        description: typeof item.description === "string" ? item.description : typeof item.pinDescription === "string" ? item.pinDescription : "",
+        linkUrl: typeof item.linkUrl === "string" ? item.linkUrl : typeof item.link === "string" ? item.link : "",
+        taggedTopics: Array.isArray(item.taggedTopics)
+          ? item.taggedTopics.filter((topic): topic is string => typeof topic === "string")
+          : Array.isArray(item.tags)
+            ? item.tags.filter((topic): topic is string => typeof topic === "string")
+            : [],
+      };
+    });
+
+    if (pins.length > 0) return { pins };
+
+    return {
+      pins: (body.pins ?? []).map((_, index) => ({
+        index,
+        title: stringValue("title", "pinTitle", "pin_title"),
+        altText: stringValue("altText", "alt_text", "alt"),
+        description: stringValue("description", "pinDescription", "pin_description"),
+        linkUrl: stringValue("linkUrl", "link", "url"),
+        taggedTopics: [],
+      })),
+    };
+  }
+
+  return data;
 }

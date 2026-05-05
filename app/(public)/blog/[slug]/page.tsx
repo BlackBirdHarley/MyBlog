@@ -131,7 +131,14 @@ export default async function ArticlePage({ params }: Props) {
     siteUrl,
     pinterestUserId,
     pins: pinterestUserId
-      ? article.pins.map((p) => ({ imageUrl: p.imageUrl, altText: p.altText, description: p.description }))
+      ? article.pins.map((p) => ({
+          imageUrl: p.imageUrl,
+          title: p.title,
+          altText: p.altText,
+          description: p.description,
+          linkUrl: p.linkUrl,
+          taggedTopics: p.taggedTopics,
+        }))
       : [],
   };
 

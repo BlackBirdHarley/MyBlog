@@ -6,18 +6,24 @@ function dateRange(days: number): { gte: Date } {
   return { gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) };
 }
 
+async function getExistingArticleIds() {
+  const articles = await prisma.article.findMany({ select: { id: true } });
+  return articles.map((article) => article.id);
+}
+
 // ---------- overview ----------
 
 export async function getOverviewStats(days = 30) {
   const since = dateRange(days);
   const prevSince = { gte: new Date(Date.now() - days * 2 * 24 * 60 * 60 * 1000) };
   const prevUntil = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const articleIds = await getExistingArticleIds();
 
   const [views, prevViews, clicks, prevClicks, articles] = await Promise.all([
-    prisma.pageView.count({ where: { createdAt: since } }),
-    prisma.pageView.count({ where: { createdAt: { gte: prevSince.gte, lt: prevUntil } } }),
-    prisma.linkClick.count({ where: { createdAt: since } }),
-    prisma.linkClick.count({ where: { createdAt: { gte: prevSince.gte, lt: prevUntil } } }),
+    prisma.pageView.count({ where: { articleId: { in: articleIds }, createdAt: since } }),
+    prisma.pageView.count({ where: { articleId: { in: articleIds }, createdAt: { gte: prevSince.gte, lt: prevUntil } } }),
+    prisma.linkClick.count({ where: { articleId: { in: articleIds }, createdAt: since } }),
+    prisma.linkClick.count({ where: { articleId: { in: articleIds }, createdAt: { gte: prevSince.gte, lt: prevUntil } } }),
     prisma.article.count({ where: { status: "PUBLISHED" } }),
   ]);
 
@@ -34,8 +40,9 @@ export async function getOverviewStats(days = 30) {
 
 export async function getViewsOverTime(days = 30): Promise<{ date: string; views: number }[]> {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const articleIds = await getExistingArticleIds();
   const rows = await prisma.pageView.findMany({
-    where: { createdAt: { gte: since } },
+    where: { articleId: { in: articleIds }, createdAt: { gte: since } },
     select: { createdAt: true },
     orderBy: { createdAt: "asc" },
   });
@@ -57,9 +64,10 @@ export async function getViewsOverTime(days = 30): Promise<{ date: string; views
 
 export async function getTopArticles(days = 30, limit = 10) {
   const since = dateRange(days);
+  const articleIds = await getExistingArticleIds();
   const rows = await prisma.pageView.groupBy({
     by: ["articleId"],
-    where: { articleId: { not: null }, createdAt: since },
+    where: { articleId: { in: articleIds }, createdAt: since },
     _count: { id: true },
     orderBy: { _count: { id: "desc" } },
     take: limit,
@@ -72,11 +80,13 @@ export async function getTopArticles(days = 30, limit = 10) {
   });
   const articleMap = Object.fromEntries(articles.map((a) => [a.id, a]));
 
-  return rows.map((r) => ({
+  return rows
+    .filter((r) => Boolean(articleMap[r.articleId!]))
+    .map((r) => ({
     articleId: r.articleId,
     views: r._count.id,
-    title: articleMap[r.articleId!]?.title ?? "Unknown",
-    slug: articleMap[r.articleId!]?.slug ?? "",
+    title: articleMap[r.articleId!].title,
+    slug: articleMap[r.articleId!].slug,
   }));
 }
 
@@ -84,9 +94,10 @@ export async function getTopArticles(days = 30, limit = 10) {
 
 export async function getTopLinks(days = 30, limit = 10) {
   const since = dateRange(days);
+  const articleIds = await getExistingArticleIds();
   const rows = await prisma.linkClick.groupBy({
     by: ["linkId"],
-    where: { createdAt: since },
+    where: { articleId: { in: articleIds }, createdAt: since },
     _count: { id: true },
     orderBy: { _count: { id: "desc" } },
     take: limit,
@@ -112,9 +123,10 @@ export async function getTopLinks(days = 30, limit = 10) {
 
 export async function getDeviceBreakdown(days = 30) {
   const since = dateRange(days);
+  const articleIds = await getExistingArticleIds();
   const rows = await prisma.pageView.groupBy({
     by: ["device"],
-    where: { createdAt: since },
+    where: { articleId: { in: articleIds }, createdAt: since },
     _count: { id: true },
     orderBy: { _count: { id: "desc" } },
   });
@@ -125,9 +137,10 @@ export async function getDeviceBreakdown(days = 30) {
 
 export async function getBrowserBreakdown(days = 30) {
   const since = dateRange(days);
+  const articleIds = await getExistingArticleIds();
   const rows = await prisma.pageView.groupBy({
     by: ["browser"],
-    where: { createdAt: since },
+    where: { articleId: { in: articleIds }, createdAt: since },
     _count: { id: true },
     orderBy: { _count: { id: "desc" } },
   });
@@ -138,8 +151,9 @@ export async function getBrowserBreakdown(days = 30) {
 
 export async function getTopReferrers(days = 30, limit = 10) {
   const since = dateRange(days);
+  const articleIds = await getExistingArticleIds();
   const rows = await prisma.pageView.findMany({
-    where: { referrer: { not: null }, createdAt: since },
+    where: { articleId: { in: articleIds }, referrer: { not: null }, createdAt: since },
     select: { referrer: true },
   });
 

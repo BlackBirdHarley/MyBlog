@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
@@ -29,8 +30,22 @@ const nav = [
   { href: "/admin/help", label: "Help", icon: HelpCircle },
 ];
 
-export function Sidebar({ showSignOut = true }: { showSignOut?: boolean }) {
+export function Sidebar({
+  showSignOut = true,
+  siteName = "PinBlog",
+  logoUrl,
+}: {
+  showSignOut?: boolean;
+  siteName?: string;
+  logoUrl?: string | null;
+}) {
   const pathname = usePathname();
+  const initials = siteName
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   function isActive(href: string, exact?: boolean) {
     if (exact) return pathname === href;
@@ -38,26 +53,42 @@ export function Sidebar({ showSignOut = true }: { showSignOut?: boolean }) {
   }
 
   return (
-    <aside className="w-60 min-h-screen bg-gray-950 flex flex-col">
-      <div className="px-5 py-6 border-b border-gray-800">
-        <Link href="/admin" className="text-white font-semibold text-lg tracking-tight">
-          PinBlog
+    <aside className="flex min-h-screen w-64 flex-col border-r border-[#1f2a23] bg-[#121a16]">
+      <div className="border-b border-white/8 px-5 py-6">
+        <Link href="/" className="flex items-center gap-3" title="Open site">
+          <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-white text-sm font-bold text-[#121a16]">
+            {logoUrl ? (
+              <Image
+                src={logoUrl}
+                alt={`${siteName} logo`}
+                fill
+                priority
+                className="object-cover"
+                sizes="40px"
+              />
+            ) : (
+              initials
+            )}
+          </span>
+          <span>
+            <span className="block text-base font-semibold tracking-tight text-white">{siteName}</span>
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8fa194]">
+              Admin workspace
+            </span>
+          </span>
         </Link>
-        <span className="ml-2 text-xs text-gray-500 font-medium uppercase tracking-widest">
-          Admin
-        </span>
       </div>
 
-      <nav className="flex-1 py-4 space-y-0.5 px-3">
+      <nav className="flex-1 space-y-1 px-3 py-4">
         {nav.map(({ href, label, icon: Icon, exact }) => (
           <Link
             key={href}
             href={href}
             className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
               isActive(href, exact)
-                ? "bg-gray-800 text-white"
-                : "text-gray-400 hover:text-white hover:bg-gray-800/60"
+                ? "bg-white text-[#121a16] shadow-sm"
+                : "text-[#aab8ad] hover:bg-white/8 hover:text-white"
             )}
           >
             <Icon size={16} />
@@ -67,10 +98,10 @@ export function Sidebar({ showSignOut = true }: { showSignOut?: boolean }) {
       </nav>
 
       {showSignOut && (
-        <div className="px-3 py-4 border-t border-gray-800">
+        <div className="border-t border-white/8 px-3 py-4">
           <button
             onClick={() => signOut({ callbackUrl: "/admin/login" })}
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition-colors"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#aab8ad] transition-colors hover:bg-white/8 hover:text-white"
           >
             <LogOut size={16} />
             Sign out

@@ -45,16 +45,26 @@ interface ArticleFormProps {
     metaDescription: string | null;
     canonicalUrl: string | null;
     publishedAt: string | null;
-    pins: { imageUrl: string; altText?: string | null; description: string | null }[];
+    pins: {
+      imageUrl: string;
+      title?: string | null;
+      altText?: string | null;
+      description: string | null;
+      linkUrl?: string | null;
+      taggedTopics?: string[];
+    }[];
   };
   categories: Category[];
   tags: Tag[];
+  siteUrl?: string | null;
 }
 
 
-export function ArticleForm({ articleId, initialData, categories, tags }: ArticleFormProps) {
+export function ArticleForm({ articleId, initialData, categories, tags, siteUrl }: ArticleFormProps) {
   const router = useRouter();
   const isNew = !articleId;
+  const normalizedSiteUrl = siteUrl?.replace(/\/$/, "") ?? "";
+  const initialArticleLink = initialData?.slug ? `${normalizedSiteUrl}/blog/${initialData.slug}` : "";
 
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [slug, setSlug] = useState(initialData?.slug ?? "");
@@ -73,8 +83,11 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
     (initialData?.pins ?? []).map((p) => ({
       key: crypto.randomUUID(),
       imageUrl: p.imageUrl,
+      title: p.title ?? initialData?.title ?? "",
       altText: p.altText ?? "",
       description: p.description ?? "",
+      linkUrl: p.linkUrl ?? initialArticleLink,
+      taggedTopics: p.taggedTopics ?? [],
     }))
   );
 
@@ -82,7 +95,7 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
   const [saveError, setSaveError] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [seoOpen, setSeoOpen] = useState(false);
-  const [pinterestOpen, setPinterestOpen] = useState(false);
+  const [pinterestOpen, setPinterestOpen] = useState(true);
   const [generatingSeoItem, setGeneratingSeoItem] = useState<SeoChecklistId | null>(null);
   const [seoFixError, setSeoFixError] = useState<string | null>(null);
   const [seoFixMessage, setSeoFixMessage] = useState<string | null>(null);
@@ -106,8 +119,11 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
     ...buildPayload(),
     pins: pins.map((p, i) => ({
       imageUrl: p.imageUrl,
+      title: p.title || null,
       altText: p.altText || null,
       description: p.description || null,
+      linkUrl: p.linkUrl || null,
+      taggedTopics: p.taggedTopics,
       sortOrder: i,
     })),
   }), [buildPayload, pins]);
@@ -130,6 +146,32 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
     [title, excerpt, heroImage, metaTitle, metaDescription, categoryId, selectedTags, pins, categories, tags]
   );
   const completedSeoItems = seoChecklist.filter((item) => item.done).length;
+
+  function serializePins(sourcePins: PinItem[]) {
+    const pageOrigin = typeof window !== "undefined" ? window.location.origin : "";
+    const toAbsoluteLink = (linkUrl: string) => {
+      const trimmed = linkUrl.trim();
+      if (!trimmed) return null;
+      if (/^https?:\/\//i.test(trimmed)) return trimmed;
+      const baseUrl = normalizedSiteUrl || pageOrigin;
+      return baseUrl ? new URL(trimmed, baseUrl).toString() : trimmed;
+    };
+
+    return sourcePins
+      .filter((pin) => Boolean(pin.imageUrl))
+      .map((pin, index) => ({
+        imageUrl: pin.imageUrl!,
+        title: pin.title.trim() || null,
+        altText: pin.altText.trim() || pin.title.trim() || pin.description.trim() || null,
+        description: pin.description.trim() || null,
+        linkUrl: toAbsoluteLink(pin.linkUrl),
+        taggedTopics: pin.taggedTopics
+          .map((topic) => topic.trim())
+          .filter(Boolean)
+          .slice(0, 10),
+        sortOrder: index,
+      }));
+  }
 
   async function save(overrideStatus?: string) {
     if (!title.trim()) { setSaveError("Title is required"); return; }
@@ -155,27 +197,21 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
       const savedId = articleId ?? data.id;
 
       // Save pins
-      const validPins = pins.filter((p) => p.imageUrl);
-      await fetch(`/api/admin/articles/${savedId}/pins`, {
+      const validPins = serializePins(pins);
+      const pinsRes = await fetch(`/api/admin/articles/${savedId}/pins`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(validPins.map((p, i) => ({
-          imageUrl: p.imageUrl,
-          altText: p.altText || null,
-          description: p.description || null,
-          sortOrder: i,
-        }))),
+        body: JSON.stringify(validPins),
       });
+      if (!pinsRes.ok) {
+        const error = await pinsRes.json().catch(() => null);
+        throw new Error(error?.error ? JSON.stringify(error.error) : "Failed to save Pinterest pins");
+      }
 
       setLastSaved(new Date());
       setLastSavedKey(JSON.stringify({
         ...payload,
-        pins: validPins.map((p, i) => ({
-          imageUrl: p.imageUrl,
-          altText: p.altText || null,
-          description: p.description || null,
-          sortOrder: i,
-        })),
+        pins: validPins,
       }));
       if (overrideStatus) setStatus(overrideStatus);
       if (isNew) router.replace(`/admin/articles/${data.id}/edit`);
@@ -194,7 +230,7 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
     }
     return () => { if (autoSaveRef.current) clearInterval(autoSaveRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isNew, buildPayload]);
+  }, [isNew, buildPayload, currentSaveKey]);
 
   function toggleTag(id: string) {
     setSelectedTags((prev) => prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]);
@@ -285,22 +321,37 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
       }
       if (item.id === "pinterestPins" && Array.isArray(data.pins)) {
         setPinterestOpen(true);
-        setPins((currentPins) => {
-          const generatedPins = data.pins as Array<{ index?: number; altText?: string; description?: string }>;
-          return currentPins.map((pin, index) => {
+        const generatedPins = data.pins as Array<{
+          index?: number;
+          title?: string;
+          altText?: string;
+          description?: string;
+          linkUrl?: string;
+          taggedTopics?: string[];
+        }>;
+        const nextPins = pins.map((pin, index) => {
             const generated = generatedPins.find((p) => p.index === index);
             if (!generated) return pin;
             return {
               ...pin,
+              title: generated.title || pin.title,
               altText: generated.altText || pin.altText,
               description: generated.description || pin.description,
+              linkUrl: generated.linkUrl || pin.linkUrl,
+              taggedTopics: generated.taggedTopics?.length ? generated.taggedTopics : pin.taggedTopics,
             };
-          });
         });
-        changed = true;
+        changed = nextPins.some((pin, index) =>
+          pin.title !== pins[index]?.title ||
+          pin.altText !== pins[index]?.altText ||
+          pin.description !== pins[index]?.description ||
+          pin.linkUrl !== pins[index]?.linkUrl ||
+          pin.taggedTopics.join(",") !== pins[index]?.taggedTopics.join(",")
+        );
+        if (changed) setPins(nextPins);
       }
 
-      if (!changed) throw new Error("AI did not return an update for this item.");
+      if (!changed) throw new Error(`AI returned no usable ${item.label} update. Try Generate SEO fix again.`);
       setSeoFixMessage(`Updated ${item.label}. Save draft to keep the change.`);
       scrollToChecklistTarget(item);
     } catch (e) {
@@ -406,7 +457,21 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
           </button>
           {pinterestOpen && (
             <div className="px-4 pb-4 border-t border-gray-100 pt-3">
-              <PinterestPins value={pins} onChange={setPins} />
+              <PinterestPins
+                value={pins}
+                onChange={setPins}
+                articleId={articleId}
+                articleContext={{
+                  title,
+                  slug,
+                  excerpt,
+                  content,
+                  siteUrl: normalizedSiteUrl,
+                  taggedTopics: tags
+                    .filter((tag) => selectedTags.includes(tag.id))
+                    .map((tag) => tag.name),
+                }}
+              />
             </div>
           )}
         </div>
@@ -434,28 +499,39 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
               </p>
             )}
 
-            <button
-              type="button"
-              onClick={() => save()}
-              disabled={saving}
-              className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
-            >
-              {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-              Save draft
-            </button>
-
             {status !== "PUBLISHED" ? (
-              <button
-                type="button"
-                onClick={() => save("PUBLISHED")}
-                disabled={saving}
-                className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
-              >
-                <Send size={15} />
-                Publish
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => save()}
+                  disabled={saving}
+                  className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+                  Save draft
+                </button>
+                <button
+                  type="button"
+                  onClick={() => save("PUBLISHED")}
+                  disabled={saving}
+                  className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                >
+                  <Send size={15} />
+                  Publish
+                </button>
+              </>
             ) : (
-              <div className="flex gap-2">
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => save("PUBLISHED")}
+                  disabled={saving}
+                  className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                >
+                  {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+                  Update
+                </button>
+                <div className="flex gap-2">
                 <a
                   href={`/blog/${slug}`}
                   target="_blank"
@@ -472,10 +548,11 @@ export function ArticleForm({ articleId, initialData, categories, tags }: Articl
                 >
                   Unpublish
                 </button>
+                </div>
               </div>
             )}
 
-            {!isNew && (
+            {!isNew && status !== "PUBLISHED" && (
               <a
                 href={`/preview/articles/${articleId}`}
                 target="_blank"
@@ -648,6 +725,7 @@ function buildSeoChecklist({
 }): SeoChecklistItem[] {
   const activeMetaTitle = metaTitle || title;
   const activeMetaDescription = metaDescription || excerpt;
+  const hasMetaDescription = activeMetaDescription.trim().length > 0;
 
   return [
     {
@@ -685,8 +763,8 @@ function buildSeoChecklist({
     {
       id: "metaDescription",
       label: "Meta description",
-      done: activeMetaDescription.trim().length >= 80 && activeMetaDescription.length <= 160,
-      hint: "Aim for 80-160 characters.",
+      done: hasMetaDescription && activeMetaDescription.length <= 160,
+      hint: hasMetaDescription ? "Shorten it to 160 characters or less." : "Add a search-friendly meta description.",
       targetId: "meta-description-field",
       canGenerate: true,
     },
@@ -701,8 +779,14 @@ function buildSeoChecklist({
     {
       id: "pinterestPins",
       label: "Pinterest pins",
-      done: pins.some((pin) => pin.imageUrl && pin.altText?.trim()),
-      hint: "Add at least one pin with ALT text.",
+      done: pins.some((pin) =>
+        pin.imageUrl &&
+        pin.title.trim() &&
+        pin.description.trim() &&
+        pin.linkUrl.trim() &&
+        pin.taggedTopics.length > 0
+      ),
+      hint: "Add a pin with title, description, link, and tagged topics.",
       targetId: "pinterest-pins-section",
       canGenerate: pins.some((pin) => pin.imageUrl),
     },

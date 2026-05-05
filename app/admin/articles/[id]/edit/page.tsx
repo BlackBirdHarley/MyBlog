@@ -8,13 +8,14 @@ import { ArrowLeft } from "lucide-react";
 export default async function EditArticlePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const [article, categories, tags] = await Promise.all([
+  const [article, categories, tags, settings] = await Promise.all([
     prisma.article.findUnique({
       where: { id },
       include: { heroImage: true, tags: true, pins: { orderBy: { sortOrder: "asc" } } },
     }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.tag.findMany({ orderBy: { name: "asc" } }),
+    prisma.siteSettings.findUnique({ where: { id: "singleton" } }).catch(() => null),
   ]);
 
   if (!article) notFound();
@@ -36,7 +37,14 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
     metaDescription: article.metaDescription,
     canonicalUrl: article.canonicalUrl,
     publishedAt: article.publishedAt?.toISOString() ?? null,
-    pins: article.pins.map((p) => ({ imageUrl: p.imageUrl, altText: p.altText, description: p.description })),
+    pins: article.pins.map((p) => ({
+      imageUrl: p.imageUrl,
+      title: p.title,
+      altText: p.altText,
+      description: p.description,
+      linkUrl: p.linkUrl,
+      taggedTopics: p.taggedTopics,
+    })),
   };
 
   return (
@@ -47,7 +55,13 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
         </Link>
         <PageHeader title={article.title || "Edit article"} />
       </div>
-      <ArticleForm articleId={id} initialData={initialData} categories={categories} tags={tags} />
+      <ArticleForm
+        articleId={id}
+        initialData={initialData}
+        categories={categories}
+        tags={tags}
+        siteUrl={settings?.siteUrl ?? process.env.SITE_URL ?? "http://localhost:3000"}
+      />
     </div>
   );
 }

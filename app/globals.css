@@ -5,6 +5,31 @@
   --font-sans: var(--font-inter);
 }
 
+@layer base {
+  :root {
+    --site-ink: #17201b;
+    --site-muted: #66736b;
+    --site-line: #e4ebe5;
+    --site-paper: #fbfcf9;
+    --site-soft: #f1f6f0;
+    --site-sage: #49685a;
+    --site-coral: #e9785f;
+    --admin-bg: #f6f8f6;
+    --admin-ink: #121a16;
+  }
+
+  body {
+    background: var(--site-paper);
+    color: var(--site-ink);
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: #dce9dd;
+    color: var(--site-ink);
+  }
+}
+
 /* Callout blocks (inserted via TipTap Callout extension) */
 @layer base {
   .callout {
@@ -166,23 +191,33 @@
   position: relative;
 }
 
-.article-image-alt-hover::after {
-  content: "ALT: " attr(data-alt);
+.article-image-alt-hover[data-alt]:not([data-alt=""])::after {
+  content: attr(data-alt);
   position: absolute;
-  left: 0.5rem;
-  right: 0.5rem;
-  bottom: 0.5rem;
-  display: none;
-  border-radius: 0.5rem;
-  background: rgba(3, 7, 18, 0.85);
-  color: white;
-  font-size: 0.75rem;
-  line-height: 1.25rem;
-  padding: 0.5rem 0.75rem;
-  pointer-events: none;
+  left: 50%;
+  bottom: 1rem;
   z-index: 5;
+  max-width: calc(100% - 2rem);
+  padding: 0.55rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.58);
+  color: #17201b;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.75);
+  box-shadow: 0 10px 30px rgba(20, 29, 24, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 0.35rem);
+  transition: opacity 160ms ease, transform 160ms ease;
+  backdrop-filter: blur(8px);
 }
 
-.article-image-alt-hover:hover::after {
-  display: block;
+.article-image-alt-hover[data-alt]:not([data-alt=""]):hover::after,
+.article-image-alt-hover[data-alt]:not([data-alt=""]):focus-within::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }

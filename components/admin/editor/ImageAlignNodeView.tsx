@@ -41,8 +41,9 @@ export function ImageAlignNodeView({ node, updateAttributes, selected, deleteNod
   return (
     <NodeViewWrapper as="div" className={wrapperCls} data-drag-handle>
       <div
+        data-alt={alt?.trim() || undefined}
         className={cn(
-          "relative group rounded-xl overflow-hidden",
+          "article-image-alt-hover relative group rounded-xl overflow-hidden",
           selected && "ring-2 ring-gray-900 ring-offset-2"
         )}
       >
@@ -50,9 +51,6 @@ export function ImageAlignNodeView({ node, updateAttributes, selected, deleteNod
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={src} alt={alt ?? ""} className="w-full block rounded-xl" />
-            <div className="pointer-events-none absolute inset-x-2 bottom-2 hidden rounded-lg bg-gray-950/85 px-3 py-2 text-xs text-white shadow group-hover:block">
-              <span className="font-medium">ALT:</span> {alt || "No ALT text yet"}
-            </div>
           </>
         ) : (
           <div className="w-full aspect-video bg-gray-100 rounded-xl flex items-center justify-center">

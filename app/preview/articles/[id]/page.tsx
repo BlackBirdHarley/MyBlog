@@ -75,8 +75,11 @@ export default async function ArticlePreviewPage({ params }: Props) {
     pinterestUserId: settings?.pinterestUserId ?? null,
     pins: article.pins.map((pin) => ({
       imageUrl: pin.imageUrl,
+      title: pin.title,
       altText: pin.altText,
       description: pin.description,
+      linkUrl: pin.linkUrl,
+      taggedTopics: pin.taggedTopics,
     })),
   };
 

@@ -1,15 +1,17 @@
 interface PinterestButtonProps {
   pageUrl: string;
   imageUrl: string;
+  title?: string | null;
   description: string;
   pinterestUserId?: string | null;
 }
 
-export function PinterestButton({ pageUrl, imageUrl, description, pinterestUserId }: PinterestButtonProps) {
+export function PinterestButton({ pageUrl, imageUrl, title, description, pinterestUserId }: PinterestButtonProps) {
+  const pinDescription = [title, description].filter(Boolean).join("\n\n");
   const params = new URLSearchParams({
     url: pageUrl,
     media: imageUrl,
-    description,
+    description: pinDescription,
     ...(pinterestUserId ? { via: pinterestUserId } : {}),
   });
 

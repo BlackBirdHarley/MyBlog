@@ -58,9 +58,6 @@ export function PinImageUpload({ value, altText, onChange }: PinImageUploadProps
       {value ? (
         <div className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-2/3">
           <Image src={value} alt={altText} fill className="object-cover" sizes="80px" />
-          <div className="pointer-events-none absolute inset-x-1 bottom-1 hidden rounded bg-gray-950/85 px-1.5 py-1 text-[10px] leading-tight text-white group-hover:block">
-            <span className="font-medium">ALT:</span> {altText || "No ALT"}
-          </div>
           <button
             type="button"
             onClick={() => onChange(null)}

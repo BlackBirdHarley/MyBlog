@@ -77,11 +77,11 @@ export default async function HomePage({ searchParams }: Props) {
 
       {/* Page 2+ header */}
       {page > 1 && (
-        <div className="px-8 lg:px-14 pt-12 pb-2">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-[#FF9B7A] font-semibold mb-2">
+        <div className="mx-auto max-w-7xl px-5 pb-2 pt-12 sm:px-8 lg:px-10">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#49685a]">
             All Articles
           </p>
-          <h1 className="text-2xl lg:text-[28px] font-bold text-[#1E252B] tracking-tight leading-tight">
+          <h1 className="text-2xl font-bold leading-tight tracking-tight text-[#17201b] lg:text-[28px]">
             Page {page} of {totalPages}
           </h1>
         </div>
@@ -89,10 +89,11 @@ export default async function HomePage({ searchParams }: Props) {
 
       {/* Category strip */}
       {activeCategories.length > 0 && (
-        <div className="px-8 lg:px-14 py-5 border-b border-[#E7ECEF] flex items-center gap-2.5 overflow-x-auto scrollbar-none">
+        <div className="border-b border-[#dfe8e0] bg-[#fbfcf9]">
+        <div className="mx-auto flex max-w-7xl items-center gap-2.5 overflow-x-auto px-5 py-5 sm:px-8 lg:px-10 scrollbar-none">
           <Link
             href="/"
-            className="shrink-0 px-4 py-1.5 rounded-full bg-[#26313A] text-white text-[10px] font-semibold uppercase tracking-[0.08em]"
+            className="shrink-0 rounded-lg bg-[#17201b] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-white"
           >
             All
           </Link>
@@ -100,26 +101,27 @@ export default async function HomePage({ searchParams }: Props) {
             <Link
               key={c.id}
               href={`/categories/${c.slug}`}
-              className="shrink-0 px-4 py-1.5 rounded-full border border-[#E4E9EC] text-[10px] font-medium uppercase tracking-[0.08em] text-[#7D8790] hover:border-[#26313A] hover:text-[#1E252B] transition-colors whitespace-nowrap"
+              className="shrink-0 whitespace-nowrap rounded-lg border border-[#dfe8e0] bg-white px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#66736b] transition-colors hover:border-[#49685a] hover:text-[#17201b]"
             >
               {c.name}
-              <span className="ml-1.5 text-[#9AA3AA]">{c._count.articles}</span>
+              <span className="ml-1.5 text-[#8d9a91]">{c._count.articles}</span>
             </Link>
           ))}
+        </div>
         </div>
       )}
 
       {/* Articles grid */}
-      <section className="px-8 lg:px-14 py-12 pb-16">
+      <section className="mx-auto max-w-7xl px-5 py-12 pb-16 sm:px-8 lg:px-10">
         {totalCount === 0 ? (
-          <div className="text-center py-24 border border-dashed border-[#E4E9EC] rounded-[18px]">
-            <p className="text-[13px] text-[#9AA3AA]">No articles published yet.</p>
+          <div className="rounded-lg border border-dashed border-[#dfe8e0] bg-white py-24 text-center">
+            <p className="text-[13px] text-[#8d9a91]">No articles published yet.</p>
           </div>
         ) : gridArticles.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-[13px] text-[#9AA3AA]">No more articles.</p>
-            <Link href="/" className="mt-4 inline-flex text-[11px] font-semibold text-[#FF9B7A] uppercase tracking-[0.08em] hover:underline">
-              &larr; Back to start
+            <p className="text-[13px] text-[#8d9a91]">No more articles.</p>
+            <Link href="/" className="mt-4 inline-flex text-[11px] font-semibold uppercase tracking-[0.08em] text-[#e9785f] hover:underline">
+              Back to start
             </Link>
           </div>
         ) : (
@@ -136,26 +138,26 @@ export default async function HomePage({ searchParams }: Props) {
             {page > 1 && (
               <Link
                 href={page === 2 ? "/" : `/?page=${page - 1}`}
-                className="px-5 py-2.5 rounded-full border border-[#E4E9EC] text-[11px] font-semibold text-[#7D8790] hover:border-[#26313A] hover:text-[#1E252B] transition-colors uppercase tracking-[0.06em]"
+                className="rounded-lg border border-[#dfe8e0] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#66736b] transition-colors hover:border-[#49685a] hover:text-[#17201b]"
               >
-                &larr; Prev
+                Prev
               </Link>
             )}
 
             <div className="flex items-center gap-1.5">
               {buildPageRange(page, totalPages).map((p, i) =>
                 p === "..." ? (
-                  <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-[#9AA3AA] text-[13px]">
+                  <span key={`ellipsis-${i}`} className="flex h-9 w-9 items-center justify-center text-[13px] text-[#8d9a91]">
                     ...
                   </span>
                 ) : (
                   <Link
                     key={p}
                     href={p === 1 ? "/" : `/?page=${p}`}
-                    className={`w-9 h-9 flex items-center justify-center rounded-full text-[12px] font-semibold transition-all ${
+                    className={`flex h-9 w-9 items-center justify-center rounded-lg text-[12px] font-semibold transition-all ${
                       p === page
-                        ? "bg-[#26313A] text-white"
-                        : "text-[#7D8790] hover:bg-[#F0F4F6] hover:text-[#1E252B]"
+                        ? "bg-[#17201b] text-white"
+                        : "text-[#66736b] hover:bg-[#edf4ee] hover:text-[#17201b]"
                     }`}
                   >
                     {p}
@@ -167,9 +169,9 @@ export default async function HomePage({ searchParams }: Props) {
             {page < totalPages && (
               <Link
                 href={`/?page=${page + 1}`}
-                className="px-5 py-2.5 rounded-full border border-[#E4E9EC] text-[11px] font-semibold text-[#7D8790] hover:border-[#26313A] hover:text-[#1E252B] transition-colors uppercase tracking-[0.06em]"
+                className="rounded-lg border border-[#dfe8e0] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#66736b] transition-colors hover:border-[#49685a] hover:text-[#17201b]"
               >
-                Next &rarr;
+                Next
               </Link>
             )}
           </div>

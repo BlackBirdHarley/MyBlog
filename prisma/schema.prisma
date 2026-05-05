@@ -179,14 +179,17 @@ model LinkClick {
 }
 
 model ArticlePin {
-  id          String   @id @default(cuid())
-  articleId   String
-  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  imageUrl    String
-  altText     String?
-  description String?
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  articleId      String
+  article        Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  imageUrl       String
+  title          String?
+  altText        String?
+  description    String?
+  linkUrl        String?
+  taggedTopics   String[] @default([])
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
 
   @@index([articleId, sortOrder])
 }

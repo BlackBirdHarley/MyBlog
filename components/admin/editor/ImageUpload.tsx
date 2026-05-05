@@ -97,13 +97,12 @@ export function ImageUpload({ value, onChange, label = "Image", aspectRatio = "a
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       {value ? (
         <div className="space-y-2">
-          <div className="relative group rounded-lg overflow-hidden border border-gray-200">
+          <div
+            className="article-image-alt-hover relative group rounded-lg overflow-hidden border border-gray-200"
+            data-alt={altText.trim() || undefined}
+          >
             <div className={cn("relative w-full bg-gray-100", aspectRatio)}>
               <Image src={value.url} alt={value.altText ?? ""} fill priority className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
-              <div className="pointer-events-none absolute inset-x-2 bottom-2 hidden rounded-lg bg-gray-950/85 px-3 py-2 text-xs text-white shadow group-hover:block">
-                <span className="font-medium">ALT:</span>{" "}
-                {value.altText || altText || "No ALT text yet"}
-              </div>
             </div>
             <button
               type="button"
