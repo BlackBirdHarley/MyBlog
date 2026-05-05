@@ -212,7 +212,7 @@ export default async function AdminDashboard({
                   <div key={pin.id} className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
                     <div className="relative aspect-[2/3] bg-gray-100">
                       <img
-                        src={pin.media?.url ?? pin.imageUrl}
+                        src={pin.imageUrl || pin.media?.url || ""}
                         alt={pin.altText ?? pin.description ?? `Pin ${index + 1}`}
                         className="h-full w-full object-cover"
                       />
