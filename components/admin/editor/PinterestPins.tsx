@@ -30,7 +30,6 @@ interface PinterestPinsProps {
 }
 
 export function PinterestPins({ value, onChange, articleId, articleContext }: PinterestPinsProps) {
-  const [aiMode, setAiMode] = useState<"pin" | "marketing">("pin");
   const [aiPrompt, setAiPrompt] = useState("");
   const [referenceImageUrl, setReferenceImageUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -86,7 +85,6 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
           ...articleContext,
           prompt: aiPrompt,
           referenceImageUrl,
-          mode: aiMode,
         }),
       });
       const data = await res.json();
@@ -127,22 +125,6 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
           <div>
             <p className="text-sm font-medium text-gray-800">AI pin studio</p>
             <p className="text-xs text-gray-500">Generate a pin image, title, description, topics, and article link.</p>
-          </div>
-          <div className="flex rounded-lg bg-white p-1 text-xs font-medium shadow-sm ring-1 ring-gray-200">
-            <button
-              type="button"
-              onClick={() => setAiMode("pin")}
-              className={`rounded-md px-2.5 py-1.5 ${aiMode === "pin" ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-800"}`}
-            >
-              Pin
-            </button>
-            <button
-              type="button"
-              onClick={() => setAiMode("marketing")}
-              className={`rounded-md px-2.5 py-1.5 ${aiMode === "marketing" ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-800"}`}
-            >
-              Marketing
-            </button>
           </div>
         </div>
 

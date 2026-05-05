@@ -18,7 +18,6 @@ const requestSchema = z.object({
   content: z.unknown().optional(),
   prompt: z.string().optional(),
   referenceImageUrl: z.string().optional(),
-  mode: z.enum(["pin", "marketing"]).default("pin"),
 });
 
 type PinCopy = {
@@ -63,7 +62,6 @@ export async function POST(req: NextRequest) {
     const tagNames = article?.tags.map((tag) => tag.name).join(", ") ?? "";
 
     const copy = await generatePinCopy({
-      mode: parsed.data.mode,
       title,
       excerpt,
       contentText,
@@ -74,7 +72,7 @@ export async function POST(req: NextRequest) {
       hasReference: Boolean(parsed.data.referenceImageUrl),
     });
 
-    const imagePrompt = buildImagePrompt(copy, parsed.data.mode, parsed.data.prompt ?? "", Boolean(parsed.data.referenceImageUrl));
+    const imagePrompt = buildImagePrompt(copy, parsed.data.prompt ?? "", Boolean(parsed.data.referenceImageUrl));
     const image = await generateImage(imagePrompt, parsed.data.referenceImageUrl);
     const uploaded = await uploadImage(
       new File([image.buffer], image.filename, { type: image.mimeType }),
@@ -130,7 +128,6 @@ export async function POST(req: NextRequest) {
 }
 
 async function generatePinCopy(input: {
-  mode: "pin" | "marketing";
   title: string;
   excerpt: string;
   contentText: string;
@@ -144,7 +141,6 @@ async function generatePinCopy(input: {
 
 Return ONLY valid JSON. No markdown.
 
-Mode: ${input.mode}
 Article title: ${input.title}
 Excerpt: ${input.excerpt}
 Category: ${input.categoryName || "none"}
@@ -195,12 +191,8 @@ function stripUrls(value: string) {
     .trim();
 }
 
-function buildImagePrompt(copy: PinCopy, mode: "pin" | "marketing", userPrompt: string, hasReference: boolean) {
-  const base = mode === "pin"
-    ? "Create a vertical 2:3 Pinterest pin graphic for a home organization blog."
-    : "Create a polished marketing image for a home organization article, suitable for Pinterest and social sharing.";
-
-  return `${base}
+function buildImagePrompt(copy: PinCopy, userPrompt: string, hasReference: boolean) {
+  return `Create a vertical 2:3 Pinterest pin graphic for a home organization blog.
 Visual direction: ${copy.imagePrompt}
 Primary overlay text: "${copy.overlayText}"
 Pin title context: ${copy.title}

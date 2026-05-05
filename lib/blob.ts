@@ -58,6 +58,9 @@ export async function uploadImage(file: File, folder = "media"): Promise<UploadR
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     return uploadVercelBlob(file, folder);
   }
+  if (process.env.VERCEL) {
+    throw new Error("BLOB_READ_WRITE_TOKEN is required for image uploads on Vercel.");
+  }
   return uploadLocal(file, folder);
 }
 
