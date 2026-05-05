@@ -11,6 +11,24 @@ export interface UploadResult {
   height?: number;
 }
 
+function blobAccess() {
+  return process.env.BLOB_ACCESS === "private" ? "private" : "public";
+}
+
+export function proxiedBlobUrl(url: string) {
+  return `/api/blob?url=${encodeURIComponent(url)}`;
+}
+
+export function originalBlobUrl(url: string) {
+  if (!url.startsWith("/api/blob")) return url;
+  try {
+    const parsed = new URL(url, "http://local");
+    return parsed.searchParams.get("url") ?? url;
+  } catch {
+    return url;
+  }
+}
+
 async function uploadLocal(file: File, folder: string): Promise<UploadResult> {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
   const base = file.name
@@ -40,14 +58,15 @@ async function uploadVercelBlob(file: File, folder: string): Promise<UploadResul
     .replace(/[^a-z0-9-]/gi, "-")
     .toLowerCase();
   const filename = `${folder}/${Date.now()}-${base}.${ext}`;
+  const access = blobAccess();
 
   const blob = await put(filename, file, {
-    access: "public",
+    access,
     contentType: file.type,
   });
 
   return {
-    url: blob.url,
+    url: access === "private" ? proxiedBlobUrl(blob.url) : blob.url,
     filename: file.name,
     size: file.size,
     mimeType: file.type,
@@ -65,6 +84,7 @@ export async function uploadImage(file: File, folder = "media"): Promise<UploadR
 }
 
 export async function deleteBlob(url: string): Promise<void> {
+  url = originalBlobUrl(url);
   if (url.startsWith("/uploads/")) {
     const filePath = path.join(process.cwd(), "public", url);
     await fs.unlink(filePath).catch(() => {});

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { extractText } from "@/lib/content-renderer";
-import { uploadImage } from "@/lib/blob";
+import { originalBlobUrl, uploadImage } from "@/lib/blob";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI, { toFile } from "openai";
@@ -236,6 +236,7 @@ async function generateImage(prompt: string, referenceImageUrl?: string) {
 }
 
 async function imageUrlToUploadable(url: string) {
+  url = originalBlobUrl(url);
   if (url.startsWith("/uploads/")) {
     const filePath = path.join(process.cwd(), "public", url);
     const buffer = await fs.readFile(filePath);
