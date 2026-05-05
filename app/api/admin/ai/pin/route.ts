@@ -174,7 +174,7 @@ Create a Pinterest-ready package:
 - tags: 5-8 concise Pinterest tags without #.
 - imagePrompt: detailed visual prompt for a vertical 2:3 marketing pin.
 ${input.hasReference
-  ? "- imagePrompt must adapt the uploaded reference image as the PRIMARY visual source: keep its main subject, camera angle, composition, color mood, material style, and overall layout. Use article context only for SEO copy and overlay text. Do not invent a different pantry scene unless the user explicitly asks."
+  ? "- imagePrompt must describe how to adapt the uploaded reference image as the PRIMARY visual source. Keep the reference's format, main subject type, layout, typography style, color mood, visual hierarchy, and composition. If the reference is a checklist, list, poster, infographic, product photo, or saved Pinterest pin, keep that same visual category. Use article context only for SEO copy and overlay text. Do not invent pantry shelves, bins, jars, or a different scene unless they are visible in the uploaded reference or explicitly requested by the user."
   : "- imagePrompt should create an original visual concept based on the article topic."}
 
 JSON shape:
@@ -214,9 +214,11 @@ function buildImagePrompt(copy: PinCopy, userPrompt: string, hasReference: boole
 
 Reference priority:
 - Treat the uploaded image as the PRIMARY visual source.
-- Preserve the reference image's main subject, product/room/object identity, camera angle, composition, visual hierarchy, color palette, lighting mood, texture/material style, and overall design language.
-- Do not imitate any previously generated pin for this article. Do not default to a generic pantry photo unless that is what the uploaded reference shows.
-- Use the article topic only to make the pin SEO-relevant and to choose short overlay text.
+- Preserve the reference image's visual category and structure. If it is a checklist/list/poster/infographic, keep it as a checklist/list/poster/infographic. If it is a product or room photo, keep that product or room as the core subject.
+- Preserve the reference image's main subject type, camera angle or flat-layout structure, composition, visual hierarchy, color palette, typography mood, lighting, texture/material style, and overall design language.
+- Do not imitate any previously generated pin for this article.
+- Do not default to a generic pantry photo, pantry shelves, jars, labels, or bins unless those elements are visible in the uploaded reference or explicitly requested by the user.
+- Use the article topic only to make the pin SEO-relevant and to choose short overlay text. The article topic must not replace the uploaded reference's visual layout or subject type.
 - If the user provided a prompt, follow it after preserving the reference image.
 
 Pin copy:
@@ -224,9 +226,7 @@ Pin copy:
 - Pin title context: ${copy.title}
 ${userPrompt ? `- User direction: ${userPrompt}` : ""}
 
-Visual direction from SEO copy: ${copy.imagePrompt}
-
-Design requirements: vertical 2:3 Pinterest marketing design, premium editorial look, clean readable text area, no fake logos, no watermark, no distorted text, no clutter.`;
+Design requirements: vertical 2:3 Pinterest marketing design, clean readable text area, no fake logos, no watermark, no distorted text, no clutter.`;
   }
 
   return `Create a vertical 2:3 Pinterest pin graphic for a home organization blog.
