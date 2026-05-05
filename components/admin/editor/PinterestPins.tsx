@@ -89,7 +89,7 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Pin generation failed");
+      if (!res.ok) throw new Error(readErrorMessage(data, "Pin generation failed"));
       const nextPins = Array.isArray(data.pins)
         ? data.pins.map(normalizePin)
         : [...value, normalizePin(data.pin)];
@@ -108,6 +108,25 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
     } finally {
       setGenerating(false);
     }
+  }
+
+  function readErrorMessage(data: unknown, fallback: string) {
+    if (!data || typeof data !== "object") return fallback;
+    const error = (data as { error?: unknown }).error;
+    if (typeof error === "string") return error;
+    if (!error || typeof error !== "object") return fallback;
+
+    const fieldErrors = (error as { fieldErrors?: Record<string, string[]> }).fieldErrors;
+    if (fieldErrors) {
+      const messages = Object.entries(fieldErrors)
+        .flatMap(([field, messages]) => messages.map((message) => `${field}: ${message}`));
+      if (messages.length > 0) return messages.join("; ");
+    }
+
+    const formErrors = (error as { formErrors?: string[] }).formErrors;
+    if (formErrors?.length) return formErrors.join("; ");
+
+    return fallback;
   }
 
   function normalizePin(pin: {

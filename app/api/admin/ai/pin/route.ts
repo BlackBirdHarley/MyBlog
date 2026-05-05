@@ -38,7 +38,19 @@ export async function POST(req: NextRequest) {
   }
 
   const parsed = requestSchema.safeParse(await req.json());
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  if (!parsed.success) {
+    const { fieldErrors, formErrors } = parsed.error.flatten();
+    const messages = [
+      ...formErrors,
+      ...Object.entries(fieldErrors).flatMap(([field, errors]) =>
+        errors.map((error) => `${field}: ${error}`)
+      ),
+    ];
+    return NextResponse.json(
+      { error: messages.join("; ") || "Invalid pin generation request" },
+      { status: 400 }
+    );
+  }
 
   try {
     const article = parsed.data.articleId
