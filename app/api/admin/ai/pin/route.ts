@@ -7,6 +7,7 @@ import OpenAI, { toFile } from "openai";
 import path from "path";
 import fs from "fs/promises";
 import { z } from "zod";
+import { get } from "@vercel/blob";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -244,10 +245,43 @@ async function imageUrlToUploadable(url: string) {
   }
 
   const response = await fetch(url);
-  if (!response.ok) throw new Error("Could not read reference image");
+  if (!response.ok) {
+    const blobFile = await readVercelBlobImage(url);
+    if (blobFile) return blobFile;
+    throw new Error("Could not read reference image");
+  }
   const buffer = Buffer.from(await response.arrayBuffer());
   const name = url.split("/").pop()?.split("?")[0] || "reference-image.png";
   return toFile(buffer, name, { type: response.headers.get("content-type") || contentTypeFromName(name) });
+}
+
+async function readVercelBlobImage(url: string) {
+  const blob = await getBlobWithFallback(url);
+  if (!blob || blob.statusCode !== 200) return null;
+
+  const buffer = Buffer.from(await new Response(blob.stream).arrayBuffer());
+  const name = url.split("/").pop()?.split("?")[0] || "reference-image.png";
+  return toFile(buffer, name, { type: blob.blob.contentType || contentTypeFromName(name) });
+}
+
+async function getBlobWithFallback(url: string) {
+  const access = process.env.BLOB_ACCESS === "private" ? "private" : "public";
+  try {
+    const blob = await get(url, { access });
+    if (blob?.statusCode === 200 || access === "private") return blob;
+  } catch (error) {
+    if (!isPrivateStoreAccessError(error)) return null;
+  }
+
+  try {
+    return await get(url, { access: "private" });
+  } catch {
+    return null;
+  }
+}
+
+function isPrivateStoreAccessError(error: unknown) {
+  return error instanceof Error && error.message.includes("Cannot use public access on a private store");
 }
 
 function contentTypeFromName(name: string) {
