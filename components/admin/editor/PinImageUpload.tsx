@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Image from "next/image";
 import { Upload, X, Loader2 } from "lucide-react";
 
 interface PinImageUploadProps {
@@ -40,8 +39,12 @@ export function PinImageUpload({ value, altText, onChange }: PinImageUploadProps
   return (
     <div className="w-20 shrink-0">
       {value ? (
-        <div className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-2/3">
-          <Image src={value} alt={altText} fill className="object-cover" sizes="80px" />
+        <div className="relative group h-[120px] w-20 overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+          <img
+            src={value}
+            alt={altText}
+            className="h-full w-full object-cover"
+          />
           <button
             type="button"
             onClick={() => onChange(null)}
