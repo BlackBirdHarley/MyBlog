@@ -119,6 +119,7 @@ Rules:
 - Keep metaDescription 120-160 characters.
 - ALT text must describe the image naturally and be useful for accessibility.
 - Category/tag suggestions must use only the provided ids.
+- Pinterest pin descriptions must not include URLs, "Visit:", "Read more", or article link text. Use linkUrl only for the link.
 
 JSON shape by field:
 - title: {"title":"..."}
@@ -217,7 +218,7 @@ function normalizeSeoFix(
         index: sourceIndex,
         title: typeof item.title === "string" ? item.title : "",
         altText: typeof item.altText === "string" ? item.altText : typeof item.alt_text === "string" ? item.alt_text : "",
-        description: typeof item.description === "string" ? item.description : typeof item.pinDescription === "string" ? item.pinDescription : "",
+        description: stripUrls(typeof item.description === "string" ? item.description : typeof item.pinDescription === "string" ? item.pinDescription : ""),
         linkUrl: typeof item.linkUrl === "string" ? item.linkUrl : typeof item.link === "string" ? item.link : "",
         taggedTopics: Array.isArray(item.taggedTopics)
           ? item.taggedTopics.filter((topic): topic is string => typeof topic === "string")
@@ -234,7 +235,7 @@ function normalizeSeoFix(
         index,
         title: stringValue("title", "pinTitle", "pin_title"),
         altText: stringValue("altText", "alt_text", "alt"),
-        description: stringValue("description", "pinDescription", "pin_description"),
+        description: stripUrls(stringValue("description", "pinDescription", "pin_description")),
         linkUrl: stringValue("linkUrl", "link", "url"),
         taggedTopics: [],
       })),
@@ -242,4 +243,13 @@ function normalizeSeoFix(
   }
 
   return data;
+}
+
+function stripUrls(value: string) {
+  return value
+    .replace(/\b(?:Visit|Read more|Learn more|See more)\s*:?\s*https?:\/\/\S+/gi, "")
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/\b(?:Visit|Read more|Learn more|See more)(?:\s+at)?\s*:?\s*$/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }

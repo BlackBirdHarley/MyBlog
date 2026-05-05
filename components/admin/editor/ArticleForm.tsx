@@ -46,6 +46,7 @@ interface ArticleFormProps {
     canonicalUrl: string | null;
     publishedAt: string | null;
     pins: {
+      id?: string;
       imageUrl: string;
       title?: string | null;
       altText?: string | null;
@@ -81,6 +82,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
   const [canonicalUrl, setCanonicalUrl] = useState(initialData?.canonicalUrl ?? "");
   const [pins, setPins] = useState<PinItem[]>(
     (initialData?.pins ?? []).map((p) => ({
+      id: p.id,
       key: crypto.randomUUID(),
       imageUrl: p.imageUrl,
       title: p.title ?? initialData?.title ?? "",
@@ -92,6 +94,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
   );
 
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [seoOpen, setSeoOpen] = useState(false);
@@ -118,6 +121,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
   const currentSaveKey = useMemo(() => JSON.stringify({
     ...buildPayload(),
     pins: pins.map((p, i) => ({
+      id: p.id,
       imageUrl: p.imageUrl,
       title: p.title || null,
       altText: p.altText || null,
@@ -157,13 +161,22 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
       return baseUrl ? new URL(trimmed, baseUrl).toString() : trimmed;
     };
 
+    const seen = new Set<string>();
+
     return sourcePins
       .filter((pin) => Boolean(pin.imageUrl))
+      .filter((pin) => {
+        const dedupeKey = pin.id || pin.imageUrl || pin.key;
+        if (seen.has(dedupeKey)) return false;
+        seen.add(dedupeKey);
+        return true;
+      })
       .map((pin, index) => ({
+        id: pin.id,
         imageUrl: pin.imageUrl!,
         title: pin.title.trim() || null,
         altText: pin.altText.trim() || pin.title.trim() || pin.description.trim() || null,
-        description: pin.description.trim() || null,
+        description: stripUrls(pin.description) || null,
         linkUrl: toAbsoluteLink(pin.linkUrl),
         taggedTopics: pin.taggedTopics
           .map((topic) => topic.trim())
@@ -174,6 +187,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
   }
 
   async function save(overrideStatus?: string) {
+    if (savingRef.current) return;
     if (!title.trim()) { setSaveError("Title is required"); return; }
     if (!categoryId) {
       setSaveError("Choose a category before saving the article.");
@@ -184,6 +198,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
       }, 120);
       return;
     }
+    savingRef.current = true;
     setSaving(true);
     setSaveError(null);
     const payload = { ...buildPayload(), ...(overrideStatus ? { status: overrideStatus } : {}) };
@@ -207,8 +222,18 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
         const error = await pinsRes.json().catch(() => null);
         throw new Error(error?.error ? JSON.stringify(error.error) : "Failed to save Pinterest pins");
       }
+      const pinsResult = await pinsRes.json().catch(() => null);
 
       setLastSaved(new Date());
+      setPins((currentPins) => {
+        const savedPins = Array.isArray(pinsResult?.pins) ? pinsResult.pins as Array<{ id: string; imageUrl: string }> : [];
+        if (savedPins.length === 0) return currentPins;
+        return currentPins.map((pin) => {
+          if (pin.id || !pin.imageUrl) return pin;
+          const savedPin = savedPins.find((item) => item.imageUrl === pin.imageUrl);
+          return savedPin ? { ...pin, id: savedPin.id } : pin;
+        });
+      });
       setLastSavedKey(JSON.stringify({
         ...payload,
         pins: validPins,
@@ -218,6 +243,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : "Save failed");
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   }
@@ -698,6 +724,15 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
       </aside>
     </div>
   );
+}
+
+function stripUrls(value: string) {
+  return value
+    .replace(/\b(?:Visit|Read more|Learn more|See more)\s*:?\s*https?:\/\/\S+/gi, "")
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/\b(?:Visit|Read more|Learn more|See more)(?:\s+at)?\s*:?\s*$/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 function buildSeoChecklist({

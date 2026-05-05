@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
             imageUrl: media.url,
             title: copy.title,
             altText: copy.altText,
-            description: copy.description,
+            description: stripUrls(copy.description),
             linkUrl: articleUrl,
             taggedTopics: copy.tags,
             sortOrder: await prisma.articlePin.count({ where: { articleId: article.id } }),
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
         id: savedPin?.id,
         imageUrl: media.url,
         altText: copy.altText,
-        description: copy.description,
+        description: stripUrls(copy.description),
         title: copy.title,
         taggedTopics: copy.tags,
         tags: copy.tags,
@@ -159,7 +159,7 @@ ${input.contentText}
 Create a Pinterest-ready package:
 - title: short click-worthy pin title, max 70 characters.
 - overlayText: 2-6 words that can be placed on the image.
-- description: 120-220 characters, natural SEO, include the article URL if available.
+- description: 120-220 characters, natural SEO, no URLs and no "visit/read more" link text because the article URL is stored in a separate linkUrl field.
 - altText: useful accessibility text for the generated image.
 - tags: 5-8 concise Pinterest tags without #.
 - imagePrompt: detailed visual prompt for a vertical 2:3 marketing pin. If a reference image is provided, preserve its winning style, layout, color mood, and composition without copying brands or text exactly.
@@ -179,11 +179,20 @@ JSON shape:
   return {
     title: (data.title || input.title || "Pinterest pin").slice(0, 90),
     overlayText: (data.overlayText || input.title || "Fresh Ideas").slice(0, 60),
-    description: data.description || input.excerpt || input.title || "",
+    description: stripUrls(data.description || input.excerpt || input.title || ""),
     altText: data.altText || `Pinterest marketing graphic for ${input.title || "article"}`,
     tags: Array.isArray(data.tags) ? data.tags.filter(Boolean).slice(0, 8) : [],
     imagePrompt: data.imagePrompt || input.userPrompt || input.title || "A polished Pinterest marketing graphic",
   };
+}
+
+function stripUrls(value: string) {
+  return value
+    .replace(/\b(?:Visit|Read more|Learn more|See more)\s*:?\s*https?:\/\/\S+/gi, "")
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/\b(?:Visit|Read more|Learn more|See more)(?:\s+at)?\s*:?\s*$/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 function buildImagePrompt(copy: PinCopy, mode: "pin" | "marketing", userPrompt: string, hasReference: boolean) {

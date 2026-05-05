@@ -5,6 +5,7 @@ import { PinImageUpload } from "./PinImageUpload";
 import { useState } from "react";
 
 export interface PinItem {
+  id?: string;
   key: string;
   imageUrl: string | null;
   title: string;
@@ -35,11 +36,15 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
   const [generating, setGenerating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [generatedSummary, setGeneratedSummary] = useState<{ title: string; tags: string[]; articleUrl: string } | null>(null);
+  const [pendingDeleteKey, setPendingDeleteKey] = useState<string | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const siteUrl = articleContext?.siteUrl?.replace(/\/$/, "") ?? "";
   const defaultLink = articleContext?.slug
     ? `${siteUrl}/blog/${articleContext.slug}`
     : "";
   const defaultTopics = articleContext?.taggedTopics ?? [];
+  const pendingDeletePin = value.find((pin) => pin.key === pendingDeleteKey);
+  const canDeletePin = deleteConfirmText === "delete pin";
 
   function addPin() {
     onChange([...value, {
@@ -55,6 +60,13 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
 
   function remove(key: string) {
     onChange(value.filter((p) => p.key !== key));
+    setPendingDeleteKey(null);
+    setDeleteConfirmText("");
+  }
+
+  function requestRemove(key: string) {
+    setPendingDeleteKey(key);
+    setDeleteConfirmText("");
   }
 
   function update(key: string, patch: Partial<PinItem>) {
@@ -82,6 +94,7 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
       onChange([
         ...value,
         {
+          id: data.pin.id,
           key: crypto.randomUUID(),
           imageUrl: data.pin.imageUrl,
           altText: data.pin.altText ?? "",
@@ -181,8 +194,9 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
               <span className="text-xs font-medium text-gray-500">Pin {i + 1}</span>
               <button
                 type="button"
-                onClick={() => remove(pin.key)}
+                onClick={() => requestRemove(pin.key)}
                 className="text-gray-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors"
+                title="Delete pin"
               >
                 <Trash2 size={13} />
               </button>
@@ -230,6 +244,53 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
         <Plus size={14} />
         Add pin
       </button>
+
+      {pendingDeletePin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/35 px-4">
+          <div className="w-full max-w-sm rounded-xl bg-white p-5 shadow-2xl ring-1 ring-gray-200">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
+                <Trash2 size={17} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900">Delete this pin?</p>
+                <p className="mt-1 text-xs leading-5 text-gray-500">
+                  This removes the pin from the article after you save or update it. Type <span className="font-semibold text-gray-700">delete pin</span> to confirm.
+                </p>
+              </div>
+            </div>
+
+            <input
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              autoFocus
+              placeholder="delete pin"
+              className="mt-4 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingDeleteKey(null);
+                  setDeleteConfirmText("");
+                }}
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => remove(pendingDeletePin.key)}
+                disabled={!canDeletePin}
+                className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Delete pin
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

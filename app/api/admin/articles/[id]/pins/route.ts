@@ -5,6 +5,7 @@ import { z } from "zod";
 
 const pinSchema = z.array(
   z.object({
+    id: z.string().optional(),
     imageUrl: z.string().min(1),
     title: z.string().nullable().optional(),
     altText: z.string().nullable().optional(),
@@ -42,21 +43,78 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ success: true, skippedEmptyReplace: true });
   }
 
-  await prisma.$transaction([
-    prisma.articlePin.deleteMany({ where: { articleId: id } }),
-    prisma.articlePin.createMany({
-      data: parsed.data.map((p) => ({
-        articleId: id,
-        imageUrl: p.imageUrl,
-        title: p.title ?? null,
-        altText: p.altText ?? null,
-        description: p.description ?? null,
-        linkUrl: p.linkUrl ?? null,
-        taggedTopics: p.taggedTopics ?? [],
-        sortOrder: p.sortOrder,
-      })),
-    }),
-  ]);
+  const uniquePins = Array.from(
+    new Map(parsed.data.map((pin) => [pin.id ?? pin.imageUrl, pin])).values()
+  ).map((pin, index) => ({ ...pin, sortOrder: index }));
 
-  return NextResponse.json({ success: true });
+  const pins = await prisma.$transaction(async (tx) => {
+    const existingPins = await tx.articlePin.findMany({
+      where: { articleId: id },
+      select: { id: true, imageUrl: true },
+    });
+    const existingIds = new Set(existingPins.map((pin) => pin.id));
+    const keptIds: string[] = [];
+
+    for (const pin of uniquePins) {
+      const data = {
+        imageUrl: pin.imageUrl,
+        title: pin.title ?? null,
+        altText: pin.altText ?? null,
+        description: pin.description ? stripUrls(pin.description) : null,
+        linkUrl: pin.linkUrl ?? null,
+        taggedTopics: pin.taggedTopics ?? [],
+        sortOrder: pin.sortOrder,
+      };
+
+      if (pin.id && existingIds.has(pin.id)) {
+        const updated = await tx.articlePin.update({
+          where: { id: pin.id },
+          data,
+          select: { id: true, imageUrl: true },
+        });
+        keptIds.push(updated.id);
+        continue;
+      }
+
+      const existingByImage = existingPins.find((existingPin) => existingPin.imageUrl === pin.imageUrl);
+      if (existingByImage && !keptIds.includes(existingByImage.id)) {
+        const updated = await tx.articlePin.update({
+          where: { id: existingByImage.id },
+          data,
+          select: { id: true, imageUrl: true },
+        });
+        keptIds.push(updated.id);
+        continue;
+      }
+
+      const created = await tx.articlePin.create({
+        data: { articleId: id, ...data },
+        select: { id: true, imageUrl: true },
+      });
+      keptIds.push(created.id);
+    }
+
+    await tx.articlePin.deleteMany({
+      where: {
+        articleId: id,
+        id: { notIn: keptIds },
+      },
+    });
+
+    return tx.articlePin.findMany({
+      where: { articleId: id },
+      orderBy: { sortOrder: "asc" },
+    });
+  });
+
+  return NextResponse.json({ success: true, pins });
+}
+
+function stripUrls(value: string) {
+  return value
+    .replace(/\b(?:Visit|Read more|Learn more|See more)\s*:?\s*https?:\/\/\S+/gi, "")
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/\b(?:Visit|Read more|Learn more|See more)(?:\s+at)?\s*:?\s*$/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
