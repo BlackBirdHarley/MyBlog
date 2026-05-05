@@ -10,7 +10,7 @@ import { slugify } from "@/lib/utils";
 import { PinterestPins, type PinItem } from "./PinterestPins";
 
 interface Category { id: string; name: string; }
-interface Tag { id: string; name: string; }
+interface Tag { id: string; name: string; categoryId?: string | null; }
 interface MediaItem { id: string; url: string; altText?: string | null; }
 type SeoChecklistId =
   | "title"
@@ -104,6 +104,14 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
   const [generatingSeoItem, setGeneratingSeoItem] = useState<SeoChecklistId | null>(null);
   const [seoFixError, setSeoFixError] = useState<string | null>(null);
   const [seoFixMessage, setSeoFixMessage] = useState<string | null>(null);
+  const filteredTags = useMemo(
+    () => categoryId ? tags.filter((tag) => tag.categoryId === categoryId) : [],
+    [categoryId, tags]
+  );
+  useEffect(() => {
+    const allowedTagIds = new Set(filteredTags.map((tag) => tag.id));
+    setSelectedTags((current) => current.filter((tagId) => allowedTagIds.has(tagId)));
+  }, [filteredTags]);
 
   const buildPayload = useCallback(() => ({
     title,
@@ -497,7 +505,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
                   excerpt,
                   content,
                   siteUrl: normalizedSiteUrl,
-                  taggedTopics: tags
+                  taggedTopics: filteredTags
                     .filter((tag) => selectedTags.includes(tag.id))
                     .map((tag) => tag.name),
                 }}
@@ -676,7 +684,13 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
           <select
             id="category-field"
             value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
+            onChange={(e) => {
+              const nextCategoryId = e.target.value;
+              setCategoryId(nextCategoryId);
+              setSelectedTags((current) => current.filter((tagId) =>
+                tags.some((tag) => tag.id === tagId && tag.categoryId === nextCategoryId)
+              ));
+            }}
             className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
           >
             <option value="">No category</option>
@@ -687,11 +701,18 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
         </div>
 
         {/* Tags */}
-        {tags.length > 0 && (
-          <div id="tags-section" className="bg-white border border-gray-200 rounded-xl p-4 space-y-2">
+        <div id="tags-section" className="bg-white border border-gray-200 rounded-xl p-4 space-y-2">
+          <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-medium text-gray-700">Tags</h3>
+            {categoryId && (
+              <span className="text-xs text-gray-400">{filteredTags.length} in category</span>
+            )}
+          </div>
+          {!categoryId ? (
+            <p className="text-xs text-gray-400">Choose a category to see its tags.</p>
+          ) : filteredTags.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
-              {tags.map((t) => (
+              {filteredTags.map((t) => (
                 <button
                   key={t.id}
                   type="button"
@@ -707,8 +728,10 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
                 </button>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="text-xs text-gray-400">No tags for this category yet. Add tags in Taxonomy.</p>
+          )}
+        </div>
 
         {/* Featured */}
         <div className="bg-white border border-gray-200 rounded-xl p-4">
