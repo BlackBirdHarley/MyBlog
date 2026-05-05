@@ -89,66 +89,9 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Pin generation failed");
-      const generatedPin: PinItem = {
-        id: data.pin.id,
-        key: crypto.randomUUID(),
-        imageUrl: data.pin.imageUrl,
-        altText: data.pin.altText ?? "",
-        description: data.pin.description ?? "",
-        title: data.pin.title ?? articleContext?.title ?? "",
-        linkUrl: data.pin.linkUrl ?? data.pin.articleUrl ?? defaultLink,
-        taggedTopics: Array.isArray(data.pin.taggedTopics)
-          ? data.pin.taggedTopics
-          : Array.isArray(data.pin.tags)
-            ? data.pin.tags
-            : defaultTopics,
-      };
-      let nextPins = [
-        ...value,
-        generatedPin,
-      ];
-
-      if (articleId) {
-        const saveRes = await fetch(`/api/admin/articles/${articleId}/pins`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(nextPins
-            .filter((pin) => pin.imageUrl)
-            .map((pin, index) => ({
-              id: pin.id,
-              imageUrl: pin.imageUrl,
-              title: pin.title || null,
-              altText: pin.altText || null,
-              description: pin.description || null,
-              linkUrl: pin.linkUrl || null,
-              taggedTopics: pin.taggedTopics,
-              sortOrder: index,
-            }))),
-        });
-        const saved = await saveRes.json().catch(() => null);
-        if (!saveRes.ok) throw new Error(saved?.error ? JSON.stringify(saved.error) : "Generated pin was not saved");
-        if (Array.isArray(saved?.pins)) {
-          nextPins = saved.pins.map((pin: {
-            id: string;
-            imageUrl: string;
-            title?: string | null;
-            altText?: string | null;
-            description?: string | null;
-            linkUrl?: string | null;
-            taggedTopics?: string[];
-          }) => ({
-            id: pin.id,
-            key: crypto.randomUUID(),
-            imageUrl: pin.imageUrl,
-            title: pin.title ?? "",
-            altText: pin.altText ?? "",
-            description: pin.description ?? "",
-            linkUrl: pin.linkUrl ?? defaultLink,
-            taggedTopics: pin.taggedTopics ?? [],
-          }));
-        }
-      }
-
+      const nextPins = Array.isArray(data.pins)
+        ? data.pins.map(normalizePin)
+        : [...value, normalizePin(data.pin)];
       onChange(nextPins);
       setGeneratedSummary({
         title: data.pin.title ?? "Generated pin",
@@ -164,6 +107,33 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
     } finally {
       setGenerating(false);
     }
+  }
+
+  function normalizePin(pin: {
+    id?: string;
+    imageUrl?: string | null;
+    title?: string | null;
+    altText?: string | null;
+    description?: string | null;
+    linkUrl?: string | null;
+    articleUrl?: string | null;
+    taggedTopics?: string[];
+    tags?: string[];
+  }): PinItem {
+    return {
+      id: pin.id,
+      key: crypto.randomUUID(),
+      imageUrl: pin.imageUrl ?? null,
+      title: pin.title ?? articleContext?.title ?? "",
+      altText: pin.altText ?? "",
+      description: pin.description ?? "",
+      linkUrl: pin.linkUrl ?? pin.articleUrl ?? defaultLink,
+      taggedTopics: Array.isArray(pin.taggedTopics)
+        ? pin.taggedTopics
+        : Array.isArray(pin.tags)
+          ? pin.tags
+          : defaultTopics,
+    };
   }
 
   return (

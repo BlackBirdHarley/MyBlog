@@ -92,19 +92,28 @@ export async function POST(req: NextRequest) {
     });
 
     const savedPin = article?.id
-      ? await prisma.articlePin.create({
-          data: {
-            articleId: article.id,
-            imageUrl: media.url,
-            title: copy.title,
-            altText: copy.altText,
-            description: stripUrls(copy.description),
-            linkUrl: articleUrl,
-            taggedTopics: copy.tags,
-            sortOrder: await prisma.articlePin.count({ where: { articleId: article.id } }),
-          },
+      ? await prisma.$transaction(async (tx) => {
+          const sortOrder = await tx.articlePin.count({ where: { articleId: article.id } });
+          return tx.articlePin.create({
+            data: {
+              articleId: article.id,
+              imageUrl: media.url,
+              title: copy.title,
+              altText: copy.altText,
+              description: stripUrls(copy.description),
+              linkUrl: articleUrl,
+              taggedTopics: copy.tags,
+              sortOrder,
+            },
+          });
         })
       : null;
+    const pins = article?.id
+      ? await prisma.articlePin.findMany({
+          where: { articleId: article.id },
+          orderBy: { sortOrder: "asc" },
+        })
+      : [];
 
     return NextResponse.json({
       media,
@@ -119,6 +128,7 @@ export async function POST(req: NextRequest) {
         linkUrl: articleUrl,
         articleUrl,
       },
+      pins,
     });
   } catch (e) {
     return NextResponse.json(
