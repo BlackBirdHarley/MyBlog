@@ -85,7 +85,7 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
           articleId,
           ...articleContext,
           prompt: aiPrompt,
-          referenceImageUrl,
+          ...(referenceImageUrl ? { referenceImageUrl } : {}),
         }),
       });
       const data = await res.json();

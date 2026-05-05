@@ -18,7 +18,7 @@ const requestSchema = z.object({
   excerpt: z.string().optional(),
   content: z.unknown().optional(),
   prompt: z.string().optional(),
-  referenceImageUrl: z.string().optional(),
+  referenceImageUrl: z.string().nullable().optional(),
 });
 
 type PinCopy = {
@@ -74,6 +74,8 @@ export async function POST(req: NextRequest) {
     const categoryName = article?.category?.name ?? "";
     const tagNames = article?.tags.map((tag) => tag.name).join(", ") ?? "";
 
+    const referenceImageUrl = parsed.data.referenceImageUrl || undefined;
+
     const copy = await generatePinCopy({
       title,
       excerpt,
@@ -82,11 +84,11 @@ export async function POST(req: NextRequest) {
       tagNames,
       articleUrl,
       userPrompt: parsed.data.prompt ?? "",
-      hasReference: Boolean(parsed.data.referenceImageUrl),
+      hasReference: Boolean(referenceImageUrl),
     });
 
-    const imagePrompt = buildImagePrompt(copy, parsed.data.prompt ?? "", Boolean(parsed.data.referenceImageUrl));
-    const image = await generateImage(imagePrompt, parsed.data.referenceImageUrl);
+    const imagePrompt = buildImagePrompt(copy, parsed.data.prompt ?? "", Boolean(referenceImageUrl));
+    const image = await generateImage(imagePrompt, referenceImageUrl);
     const uploaded = await uploadImage(
       new File([image.buffer], image.filename, { type: image.mimeType }),
       "media"
