@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { Trash2, Copy, Check, ImageIcon, FileImage, Layers3 } from "lucide-react";
 
 interface Media {
@@ -125,13 +124,10 @@ function MediaGrid({
           className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md"
         >
           <div className="relative h-48 bg-gray-100 sm:h-52 xl:h-56">
-            <Image
+            <img
               src={item.thumbnailUrl ?? item.url}
               alt={item.altText ?? item.filename}
-              width={640}
-              height={480}
               className="h-full w-full object-cover"
-              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 33vw, 280px"
             />
             <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/0 opacity-0 transition-all group-hover:bg-black/35 group-hover:opacity-100">
               <button
