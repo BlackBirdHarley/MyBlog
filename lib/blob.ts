@@ -11,8 +11,12 @@ export interface UploadResult {
   height?: number;
 }
 
-function blobAccess() {
+function blobAccess(): "private" | "public" {
   return process.env.BLOB_ACCESS === "private" ? "private" : "public";
+}
+
+function isPrivateStoreAccessError(error: unknown) {
+  return error instanceof Error && error.message.includes("Cannot use public access on a private store");
 }
 
 export function proxiedBlobUrl(url: string) {
@@ -58,12 +62,22 @@ async function uploadVercelBlob(file: File, folder: string): Promise<UploadResul
     .replace(/[^a-z0-9-]/gi, "-")
     .toLowerCase();
   const filename = `${folder}/${Date.now()}-${base}.${ext}`;
-  const access = blobAccess();
+  let access: "private" | "public" = blobAccess();
 
-  const blob = await put(filename, file, {
-    access,
-    contentType: file.type,
-  });
+  let blob;
+  try {
+    blob = await put(filename, file, {
+      access,
+      contentType: file.type,
+    });
+  } catch (error) {
+    if (!isPrivateStoreAccessError(error)) throw error;
+    access = "private";
+    blob = await put(filename, file, {
+      access,
+      contentType: file.type,
+    });
+  }
 
   return {
     url: access === "private" ? proxiedBlobUrl(blob.url) : blob.url,

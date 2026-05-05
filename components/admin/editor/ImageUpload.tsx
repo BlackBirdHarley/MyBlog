@@ -48,34 +48,15 @@ export function ImageUpload({ value, onChange, label = "Image", aspectRatio = "a
     setUploading(true);
     setError(null);
     try {
-      let media: { id: string; url: string; altText?: string | null };
-
-      try {
-        // Client-side upload directly to Vercel Blob (no serverless body limit)
-        const { upload } = await import("@vercel/blob/client");
-        const blob = await upload(file.name, file, {
-          access: "public",
-          handleUploadUrl: "/api/admin/media/upload",
-        });
-        const res = await fetch("/api/admin/media", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: blob.url, filename: file.name, fileSize: file.size, mimeType: file.type, altText: altText || null }),
-        });
-        if (!res.ok) throw new Error("Failed to register media");
-        media = await res.json();
-      } catch {
-        // Fallback: server-side upload (local dev without Vercel Blob)
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("altText", altText);
-        const res = await fetch("/api/admin/media/upload", { method: "POST", body: formData });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error ?? "Upload failed");
-        }
-        media = await res.json();
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("altText", altText);
+      const res = await fetch("/api/admin/media/upload", { method: "POST", body: formData });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Upload failed");
       }
+      const media: { id: string; url: string; altText?: string | null } = await res.json();
 
       onChange(media);
       setAltDraft(null);
