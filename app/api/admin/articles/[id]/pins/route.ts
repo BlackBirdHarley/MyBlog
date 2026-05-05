@@ -6,6 +6,7 @@ import { z } from "zod";
 const pinSchema = z.array(
   z.object({
     id: z.string().optional(),
+    mediaId: z.string().nullable().optional(),
     imageUrl: z.string().min(1),
     title: z.string().nullable().optional(),
     altText: z.string().nullable().optional(),
@@ -52,11 +53,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       where: { articleId: id },
       select: { id: true, imageUrl: true },
     });
+    const media = await tx.media.findMany({
+      where: { url: { in: uniquePins.map((pin) => pin.imageUrl) } },
+      select: { id: true, url: true },
+    });
+    const existingMediaByUrl = new Map(media.map((item) => [item.url, item]));
     const existingIds = new Set(existingPins.map((pin) => pin.id));
     const keptIds: string[] = [];
 
     for (const pin of uniquePins) {
       const data = {
+        mediaId: pin.mediaId ?? existingMediaByUrl.get(pin.imageUrl)?.id ?? null,
         imageUrl: pin.imageUrl,
         title: pin.title ?? null,
         altText: pin.altText ?? null,

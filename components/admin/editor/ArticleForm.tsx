@@ -47,6 +47,7 @@ interface ArticleFormProps {
     publishedAt: string | null;
     pins: {
       id?: string;
+      mediaId?: string | null;
       imageUrl: string;
       title?: string | null;
       altText?: string | null;
@@ -83,6 +84,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
   const [pins, setPins] = useState<PinItem[]>(
     (initialData?.pins ?? []).map((p) => ({
       id: p.id,
+      mediaId: p.mediaId ?? null,
       key: crypto.randomUUID(),
       imageUrl: p.imageUrl,
       title: p.title ?? initialData?.title ?? "",
@@ -122,6 +124,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
     ...buildPayload(),
     pins: pins.map((p, i) => ({
       id: p.id,
+      mediaId: p.mediaId ?? null,
       imageUrl: p.imageUrl,
       title: p.title || null,
       altText: p.altText || null,
@@ -173,6 +176,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
       })
       .map((pin, index) => ({
         id: pin.id,
+        mediaId: pin.mediaId ?? null,
         imageUrl: pin.imageUrl!,
         title: pin.title.trim() || null,
         altText: pin.altText.trim() || pin.title.trim() || pin.description.trim() || null,

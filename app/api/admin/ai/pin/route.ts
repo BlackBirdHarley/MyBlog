@@ -97,6 +97,7 @@ export async function POST(req: NextRequest) {
           return tx.articlePin.create({
             data: {
               articleId: article.id,
+              mediaId: media.id,
               imageUrl: media.url,
               title: copy.title,
               altText: copy.altText,
@@ -111,6 +112,7 @@ export async function POST(req: NextRequest) {
     const pins = article?.id
       ? await prisma.articlePin.findMany({
           where: { articleId: article.id },
+          include: { media: true },
           orderBy: { sortOrder: "asc" },
         })
       : [];
@@ -119,6 +121,7 @@ export async function POST(req: NextRequest) {
       media,
       pin: {
         id: savedPin?.id,
+        mediaId: media.id,
         imageUrl: media.url,
         altText: copy.altText,
         description: stripUrls(copy.description),

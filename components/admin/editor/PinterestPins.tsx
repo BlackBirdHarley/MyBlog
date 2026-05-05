@@ -6,6 +6,7 @@ import { useState } from "react";
 
 export interface PinItem {
   id?: string;
+  mediaId?: string | null;
   key: string;
   imageUrl: string | null;
   title: string;
@@ -111,6 +112,7 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
 
   function normalizePin(pin: {
     id?: string;
+    mediaId?: string | null;
     imageUrl?: string | null;
     title?: string | null;
     altText?: string | null;
@@ -122,6 +124,7 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
   }): PinItem {
     return {
       id: pin.id,
+      mediaId: pin.mediaId ?? null,
       key: crypto.randomUUID(),
       imageUrl: pin.imageUrl ?? null,
       title: pin.title ?? articleContext?.title ?? "",

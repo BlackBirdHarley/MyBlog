@@ -140,6 +140,7 @@ model Media {
 
   heroForArticles      Article[] @relation("HeroImage")
   pinterestForArticles Article[] @relation("PinterestImage")
+  pinImages            ArticlePin[] @relation("PinImage")
 }
 
 model PageView {
@@ -182,6 +183,8 @@ model ArticlePin {
   id             String   @id @default(cuid())
   articleId      String
   article        Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  mediaId        String?
+  media          Media?   @relation("PinImage", fields: [mediaId], references: [id], onDelete: SetNull)
   imageUrl       String
   title          String?
   altText        String?
@@ -192,6 +195,7 @@ model ArticlePin {
   createdAt      DateTime @default(now())
 
   @@index([articleId, sortOrder])
+  @@index([mediaId])
 }
 
 model StaticPage {
