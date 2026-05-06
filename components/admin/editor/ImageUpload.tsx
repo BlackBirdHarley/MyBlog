@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import { Upload, X, Loader2, Check } from "lucide-react";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface ImageUploadProps {
@@ -83,7 +82,11 @@ export function ImageUpload({ value, onChange, label = "Image", aspectRatio = "a
             data-alt={altText.trim() || undefined}
           >
             <div className={cn("relative w-full bg-gray-100", aspectRatio)}>
-              <Image src={value.url} alt={value.altText ?? ""} fill priority className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
+              <img
+                src={value.url}
+                alt={value.altText ?? ""}
+                className="h-full w-full object-cover"
+              />
             </div>
             <button
               type="button"
