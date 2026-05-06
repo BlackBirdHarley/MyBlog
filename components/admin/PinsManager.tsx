@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, ExternalLink, Filter, ImageIcon, Loader2, Plus, X } from "lucide-react";
@@ -52,7 +52,15 @@ export function PinsManager({
   const [boardSaving, setBoardSaving] = useState(false);
   const [boardError, setBoardError] = useState<string | null>(null);
   const [savingPinId, setSavingPinId] = useState<string | null>(null);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [savedPinId, setSavedPinId] = useState<string | null>(null);
+  const [pinsState, setPinsState] = useState(pins);
   const activeBoards = useMemo(() => boards.filter((board) => board.isActive), [boards]);
+  const boardById = useMemo(() => new Map(boards.map((board) => [board.id, board])), [boards]);
+
+  useEffect(() => {
+    setPinsState(pins);
+  }, [pins]);
 
   function updateFilter(next: { articleId?: string; boardId?: string }) {
     const params = new URLSearchParams();
@@ -98,15 +106,35 @@ export function PinsManager({
     router.refresh();
   }
 
-  async function updatePinBoard(pinId: string, boardId: string) {
+  function setLocalPinBoard(pinId: string, boardId: string) {
+    const board = boardId ? boardById.get(boardId) : null;
+    setPinsState((current) => current.map((pin) =>
+      pin.id === pinId
+        ? { ...pin, boardId: boardId || null, board: board ? { id: board.id, name: board.name } : null }
+        : pin
+    ));
+    setSavedPinId(null);
+    setPinError(null);
+  }
+
+  async function updatePinBoard(pinId: string) {
+    const pin = pinsState.find((item) => item.id === pinId);
+    if (!pin) return;
     setSavingPinId(pinId);
+    setPinError(null);
+    setSavedPinId(null);
     try {
-      await fetch(`/api/admin/pins/${pinId}`, {
+      const res = await fetch(`/api/admin/pins/${pinId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ boardId: boardId || null }),
+        body: JSON.stringify({ boardId: pin.boardId || null }),
       });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(readError(data, "Failed to save pin board."));
+      setSavedPinId(pinId);
       router.refresh();
+    } catch (error) {
+      setPinError(error instanceof Error ? error.message : "Failed to save pin board.");
     } finally {
       setSavingPinId(null);
     }
@@ -172,7 +200,10 @@ export function PinsManager({
 
           {pins.length > 0 ? (
             <div className="grid gap-4 p-5 sm:grid-cols-2 2xl:grid-cols-3">
-              {pins.map((pin) => (
+              {pinsState.map((pin) => {
+                const originalPin = pins.find((item) => item.id === pin.id);
+                const boardChanged = (originalPin?.boardId ?? null) !== (pin.boardId ?? null);
+                return (
                 <article key={pin.id} className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                   <div className="relative aspect-2/3 bg-gray-100">
                     {pin.imageUrl ? (
@@ -196,18 +227,38 @@ export function PinsManager({
                     {pin.description && <p className="line-clamp-3 text-xs leading-5 text-gray-500">{pin.description}</p>}
                     <label className="block space-y-1.5">
                       <span className="text-xs font-medium text-gray-500">Board</span>
-                      <select
-                        value={pin.boardId ?? ""}
-                        onChange={(event) => updatePinBoard(pin.id, event.target.value)}
-                        disabled={savingPinId === pin.id}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:opacity-50"
-                      >
-                        <option value="">No board selected</option>
-                        {boards.map((board) => (
-                          <option key={board.id} value={board.id}>{board.name}</option>
-                        ))}
-                      </select>
+                      <div className="flex gap-2">
+                        <select
+                          value={pin.boardId ?? ""}
+                          onChange={(event) => setLocalPinBoard(pin.id, event.target.value)}
+                          disabled={savingPinId === pin.id}
+                          className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:opacity-50"
+                        >
+                          <option value="">No board selected</option>
+                          {boards.map((board) => (
+                            <option key={board.id} value={board.id}>{board.name}</option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => updatePinBoard(pin.id)}
+                          disabled={savingPinId === pin.id || !boardChanged}
+                          className="inline-flex min-w-16 items-center justify-center rounded-lg bg-gray-900 px-3 py-2 text-xs font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-35"
+                        >
+                          {savingPinId === pin.id ? <Loader2 size={13} className="animate-spin" /> : "Save"}
+                        </button>
+                      </div>
                     </label>
+                    {savedPinId === pin.id && (
+                      <p className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-700">
+                        Board saved.
+                      </p>
+                    )}
+                    {pinError && savingPinId !== pin.id && (
+                      <p className="rounded-lg bg-red-50 px-2.5 py-1.5 text-xs text-red-600">
+                        {pinError}
+                      </p>
+                    )}
                     {pin.taggedTopics.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
                         {pin.taggedTopics.slice(0, 6).map((topic) => (
@@ -237,7 +288,7 @@ export function PinsManager({
                     </div>
                   </div>
                 </article>
-              ))}
+              )})}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center gap-2 px-5 py-24 text-center">
