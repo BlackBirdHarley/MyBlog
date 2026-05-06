@@ -12,6 +12,7 @@ import { PinterestPins, type PinItem } from "./PinterestPins";
 interface Category { id: string; name: string; }
 interface Tag { id: string; name: string; categoryId?: string | null; }
 interface MediaItem { id: string; url: string; altText?: string | null; }
+interface PinBoardOption { id: string; name: string; }
 type SeoChecklistId =
   | "title"
   | "heroImage"
@@ -47,6 +48,7 @@ interface ArticleFormProps {
     publishedAt: string | null;
     pins: {
       id?: string;
+      boardId?: string | null;
       mediaId?: string | null;
       imageUrl: string;
       title?: string | null;
@@ -58,11 +60,12 @@ interface ArticleFormProps {
   };
   categories: Category[];
   tags: Tag[];
+  boards?: PinBoardOption[];
   siteUrl?: string | null;
 }
 
 
-export function ArticleForm({ articleId, initialData, categories, tags, siteUrl }: ArticleFormProps) {
+export function ArticleForm({ articleId, initialData, categories, tags, boards = [], siteUrl }: ArticleFormProps) {
   const router = useRouter();
   const isNew = !articleId;
   const normalizedSiteUrl = siteUrl?.replace(/\/$/, "") ?? "";
@@ -84,6 +87,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
   const [pins, setPins] = useState<PinItem[]>(
     (initialData?.pins ?? []).map((p) => ({
       id: p.id,
+      boardId: p.boardId ?? null,
       mediaId: p.mediaId ?? null,
       key: crypto.randomUUID(),
       imageUrl: p.imageUrl,
@@ -132,6 +136,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
     ...buildPayload(),
     pins: pins.map((p, i) => ({
       id: p.id,
+      boardId: p.boardId ?? null,
       mediaId: p.mediaId ?? null,
       imageUrl: p.imageUrl,
       title: p.title || null,
@@ -184,6 +189,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
       })
       .map((pin, index) => ({
         id: pin.id,
+        boardId: pin.boardId ?? null,
         mediaId: pin.mediaId ?? null,
         imageUrl: pin.imageUrl!,
         title: pin.title.trim() || null,
@@ -498,6 +504,7 @@ export function ArticleForm({ articleId, initialData, categories, tags, siteUrl 
               <PinterestPins
                 value={pins}
                 onChange={setPins}
+                boards={boards}
                 articleId={articleId}
                 articleContext={{
                   title,

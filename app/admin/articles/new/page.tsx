@@ -5,9 +5,10 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export default async function NewArticlePage() {
-  const [categories, tags, settings] = await Promise.all([
+  const [categories, tags, boards, settings] = await Promise.all([
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.tag.findMany({ orderBy: { name: "asc" } }),
+    prisma.pinBoard.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
     prisma.siteSettings.findUnique({ where: { id: "singleton" } }).catch(() => null),
   ]);
 
@@ -22,6 +23,7 @@ export default async function NewArticlePage() {
       <ArticleForm
         categories={categories}
         tags={tags}
+        boards={boards}
         siteUrl={settings?.siteUrl ?? process.env.SITE_URL ?? "http://localhost:3000"}
       />
     </div>

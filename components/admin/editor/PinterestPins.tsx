@@ -6,6 +6,7 @@ import { useState } from "react";
 
 export interface PinItem {
   id?: string;
+  boardId?: string | null;
   mediaId?: string | null;
   key: string;
   imageUrl: string | null;
@@ -19,6 +20,7 @@ export interface PinItem {
 interface PinterestPinsProps {
   value: PinItem[];
   onChange: (pins: PinItem[]) => void;
+  boards?: { id: string; name: string }[];
   articleId?: string;
   articleContext?: {
     title: string;
@@ -30,9 +32,10 @@ interface PinterestPinsProps {
   };
 }
 
-export function PinterestPins({ value, onChange, articleId, articleContext }: PinterestPinsProps) {
+export function PinterestPins({ value, onChange, boards = [], articleId, articleContext }: PinterestPinsProps) {
   const [aiPrompt, setAiPrompt] = useState("");
   const [referenceImageUrl, setReferenceImageUrl] = useState<string | null>(null);
+  const [aiBoardId, setAiBoardId] = useState<string>(boards[0]?.id ?? "");
   const [generating, setGenerating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [generatedSummary, setGeneratedSummary] = useState<{ title: string; tags: string[]; articleUrl: string } | null>(null);
@@ -49,6 +52,7 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
   function addPin() {
     onChange([...value, {
       key: crypto.randomUUID(),
+      boardId: boards[0]?.id ?? null,
       imageUrl: null,
       title: articleContext?.title ?? "",
       altText: "",
@@ -86,6 +90,7 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
           ...articleContext,
           prompt: aiPrompt,
           ...(referenceImageUrl ? { referenceImageUrl } : {}),
+          ...(aiBoardId ? { boardId: aiBoardId } : {}),
         }),
       });
       const data = await res.json();
@@ -131,6 +136,7 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
 
   function normalizePin(pin: {
     id?: string;
+    boardId?: string | null;
     mediaId?: string | null;
     imageUrl?: string | null;
     title?: string | null;
@@ -143,6 +149,7 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
   }): PinItem {
     return {
       id: pin.id,
+      boardId: pin.boardId ?? (aiBoardId || boards[0]?.id || null),
       mediaId: pin.mediaId ?? null,
       key: crypto.randomUUID(),
       imageUrl: pin.imageUrl ?? null,
@@ -182,6 +189,16 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
               placeholder="Prompt or direction. You can upload a product image or a successful pin as the reference on the left."
               className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
+            <select
+              value={aiBoardId}
+              onChange={(e) => setAiBoardId(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            >
+              <option value="">Generate without board</option>
+              {boards.map((board) => (
+                <option key={board.id} value={board.id}>{board.name}</option>
+              ))}
+            </select>
             <button
               type="button"
               onClick={generatePin}
@@ -236,6 +253,16 @@ export function PinterestPins({ value, onChange, articleId, articleContext }: Pi
               placeholder="Pinterest title"
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
             />
+            <select
+              value={pin.boardId ?? ""}
+              onChange={(e) => update(pin.key, { boardId: e.target.value || null })}
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+            >
+              <option value="">No board selected</option>
+              {boards.map((board) => (
+                <option key={board.id} value={board.id}>{board.name}</option>
+              ))}
+            </select>
             <input
               value={pin.linkUrl}
               onChange={(e) => update(pin.key, { linkUrl: e.target.value })}

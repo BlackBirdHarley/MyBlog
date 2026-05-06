@@ -6,6 +6,7 @@ import { z } from "zod";
 const pinSchema = z.array(
   z.object({
     id: z.string().optional(),
+    boardId: z.string().nullable().optional(),
     mediaId: z.string().nullable().optional(),
     imageUrl: z.string().min(1),
     title: z.string().nullable().optional(),
@@ -63,6 +64,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     for (const pin of uniquePins) {
       const data = {
+        boardId: pin.boardId ?? null,
         mediaId: pin.mediaId ?? existingMediaByUrl.get(pin.imageUrl)?.id ?? null,
         imageUrl: pin.imageUrl,
         title: pin.title ?? null,

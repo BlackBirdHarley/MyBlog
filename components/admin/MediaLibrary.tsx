@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, Copy, Check, ImageIcon, FileImage, Layers3 } from "lucide-react";
+import { Copy, Check, ImageIcon, FileImage, Layers3 } from "lucide-react";
 
 interface Media {
   id: string | null;
@@ -36,14 +36,8 @@ export function MediaLibrary({
   initialMedia?: Media[];
   sections?: MediaSection[];
 }) {
-  const [media, setMedia] = useState(initialMedia ?? []);
+  const [media] = useState(initialMedia ?? []);
   const [copied, setCopied] = useState<string | null>(null);
-
-  async function remove(id: string, filename: string) {
-    if (!confirm(`Delete "${filename}"?`)) return;
-    const res = await fetch(`/api/admin/media/${id}`, { method: "DELETE" });
-    if (res.ok) setMedia((prev) => prev.filter((m) => m.id !== id));
-  }
 
   async function copyUrl(url: string) {
     await navigator.clipboard.writeText(url);
@@ -79,7 +73,7 @@ export function MediaLibrary({
             </div>
             {section.items.length > 0 ? (
               <div className="px-4 pb-4">
-                <MediaGrid items={section.items} copied={copied} copyUrl={copyUrl} remove={remove} />
+                <MediaGrid items={section.items} copied={copied} copyUrl={copyUrl} />
               </div>
             ) : (
               <div className="mx-4 mb-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 py-10 text-center text-sm text-gray-400">
@@ -101,7 +95,7 @@ export function MediaLibrary({
   }
 
   return (
-    <MediaGrid items={media} copied={copied} copyUrl={copyUrl} remove={remove} />
+    <MediaGrid items={media} copied={copied} copyUrl={copyUrl} />
   );
 }
 
@@ -109,12 +103,10 @@ function MediaGrid({
   items,
   copied,
   copyUrl,
-  remove,
 }: {
   items: Media[];
   copied: string | null;
   copyUrl: (url: string) => void;
-  remove: (id: string, filename: string) => void;
 }) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
@@ -137,15 +129,6 @@ function MediaGrid({
               >
                 {copied === item.url ? <Check size={15} className="text-green-600" /> : <Copy size={15} />}
               </button>
-              {item.id && (
-                <button
-                  onClick={() => remove(item.id!, item.filename)}
-                  className="rounded-lg bg-white p-2 text-gray-700 shadow transition-colors hover:text-red-600"
-                  title="Delete"
-                >
-                  <Trash2 size={15} />
-                </button>
-              )}
             </div>
             {item.source && (
               <span className="absolute left-2 top-2 rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-gray-700 shadow-sm ring-1 ring-black/5">

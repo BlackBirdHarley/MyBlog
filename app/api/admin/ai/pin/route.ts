@@ -13,6 +13,7 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const requestSchema = z.object({
   articleId: z.string().optional(),
+  boardId: z.string().nullable().optional(),
   title: z.string().optional(),
   slug: z.string().optional(),
   excerpt: z.string().optional(),
@@ -111,6 +112,7 @@ export async function POST(req: NextRequest) {
           return tx.articlePin.create({
             data: {
               articleId: article.id,
+              boardId: parsed.data.boardId ?? null,
               mediaId: media.id,
               imageUrl: media.url,
               title: copy.title,
@@ -135,6 +137,7 @@ export async function POST(req: NextRequest) {
       media,
       pin: {
         id: savedPin?.id,
+        boardId: savedPin?.boardId ?? parsed.data.boardId ?? null,
         mediaId: media.id,
         imageUrl: media.url,
         altText: copy.altText,
