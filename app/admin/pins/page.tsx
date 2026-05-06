@@ -45,6 +45,7 @@ export default async function PinsPage({
           linkUrl: pin.linkUrl,
           taggedTopics: pin.taggedTopics,
           createdAt: pin.createdAt.toISOString(),
+          boardId: pin.boardId,
           board: pin.board,
           article: pin.article,
         }))}

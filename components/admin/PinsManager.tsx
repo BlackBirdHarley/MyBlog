@@ -28,6 +28,7 @@ interface PinRecord {
   linkUrl: string | null;
   taggedTopics: string[];
   createdAt: string;
+  boardId: string | null;
   board: { id: string; name: string } | null;
   article: { id: string; title: string; slug: string };
 }
@@ -50,6 +51,7 @@ export function PinsManager({
   const [boardDescription, setBoardDescription] = useState("");
   const [boardSaving, setBoardSaving] = useState(false);
   const [boardError, setBoardError] = useState<string | null>(null);
+  const [savingPinId, setSavingPinId] = useState<string | null>(null);
   const activeBoards = useMemo(() => boards.filter((board) => board.isActive), [boards]);
 
   function updateFilter(next: { articleId?: string; boardId?: string }) {
@@ -94,6 +96,20 @@ export function PinsManager({
       body: JSON.stringify({ isActive: !board.isActive }),
     });
     router.refresh();
+  }
+
+  async function updatePinBoard(pinId: string, boardId: string) {
+    setSavingPinId(pinId);
+    try {
+      await fetch(`/api/admin/pins/${pinId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ boardId: boardId || null }),
+      });
+      router.refresh();
+    } finally {
+      setSavingPinId(null);
+    }
   }
 
   return (
@@ -178,6 +194,20 @@ export function PinsManager({
                       </Link>
                     </div>
                     {pin.description && <p className="line-clamp-3 text-xs leading-5 text-gray-500">{pin.description}</p>}
+                    <label className="block space-y-1.5">
+                      <span className="text-xs font-medium text-gray-500">Board</span>
+                      <select
+                        value={pin.boardId ?? ""}
+                        onChange={(event) => updatePinBoard(pin.id, event.target.value)}
+                        disabled={savingPinId === pin.id}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:opacity-50"
+                      >
+                        <option value="">No board selected</option>
+                        {boards.map((board) => (
+                          <option key={board.id} value={board.id}>{board.name}</option>
+                        ))}
+                      </select>
+                    </label>
                     {pin.taggedTopics.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
                         {pin.taggedTopics.slice(0, 6).map((topic) => (
