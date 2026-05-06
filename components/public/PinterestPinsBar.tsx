@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { PinterestButton } from "./PinterestButton";
 
 interface Pin {
@@ -26,7 +25,11 @@ export function PinterestPinsBar({ pins, pageUrl, pinterestUserId }: PinterestPi
         {pins.map((pin, i) => (
           <div key={i} className="flex flex-col items-center gap-2 w-24">
             <div className="relative w-24 aspect-2/3 rounded-lg overflow-hidden border border-gray-100">
-              <Image src={pin.imageUrl} alt={pin.altText ?? pin.description ?? "Pin image"} fill className="object-cover" sizes="96px" />
+              <img
+                src={pin.imageUrl}
+                alt={pin.altText ?? pin.description ?? "Pin image"}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
             </div>
             <PinterestButton
               pageUrl={resolvePinUrl(pin.linkUrl, pageUrl)}

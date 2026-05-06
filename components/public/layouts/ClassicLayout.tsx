@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { formatDate, readingTime } from "@/lib/utils";
 import { PinterestPinsBar } from "@/components/public/PinterestPinsBar";
@@ -38,13 +37,10 @@ export function ClassicLayout({ article, contentHtml, siteUrl, pinterestUserId, 
           className="article-hero-bleed article-image-alt-hover mb-8"
           data-alt={article.heroImage.altText ?? article.title}
         >
-          <Image
+          <img
             src={article.heroImage.url}
             alt={article.heroImage.altText ?? article.title}
-            fill
-            priority
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 768px"
+            className="absolute inset-0 h-full w-full object-cover"
           />
         </div>
       )}
@@ -127,7 +123,11 @@ export function ClassicLayout({ article, contentHtml, siteUrl, pinterestUserId, 
                   >
                     {a.heroImage && (
                       <div className="relative w-full aspect-video mb-2 overflow-hidden bg-gray-100">
-                        <Image src={a.heroImage.url} alt={a.heroImage.altText ?? a.title} fill className="object-cover" sizes="220px" />
+                        <img
+                          src={a.heroImage.url}
+                          alt={a.heroImage.altText ?? a.title}
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
                       </div>
                     )}
                     <p className="text-sm font-medium text-gray-900 line-clamp-3 group-hover:text-gray-600">{a.title}</p>
@@ -167,7 +167,11 @@ export function ClassicLayout({ article, contentHtml, siteUrl, pinterestUserId, 
               >
                 {a.heroImage && (
                   <div className="relative w-20 h-16 shrink-0 overflow-hidden bg-gray-100">
-                    <Image src={a.heroImage.url} alt={a.heroImage.altText ?? a.title} fill className="object-cover" sizes="80px" />
+                    <img
+                      src={a.heroImage.url}
+                      alt={a.heroImage.altText ?? a.title}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
                   </div>
                 )}
                 <div className="min-w-0">

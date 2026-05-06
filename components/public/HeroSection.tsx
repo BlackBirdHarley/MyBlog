@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 
@@ -46,13 +45,10 @@ export function HeroSection({ article, siteName = "My Blog", siteDescription, he
   return (
     <section className="relative min-h-[560px] overflow-hidden bg-[#17201b]">
       {article.heroImage ? (
-        <Image
+        <img
           src={article.heroImage.url}
           alt={article.heroImage.altText ?? article.title}
-          fill
-          priority
-          className="object-cover opacity-88"
-          sizes="100vw"
+          className="absolute inset-0 h-full w-full object-cover opacity-88"
         />
       ) : (
         <div className="absolute inset-0 bg-[#dbe5dc]" />

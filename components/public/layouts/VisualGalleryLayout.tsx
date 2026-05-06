@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { PinterestPinsBar } from "@/components/public/PinterestPinsBar";
@@ -38,13 +37,10 @@ export function VisualGalleryLayout({ article, contentHtml, siteUrl, pinterestUs
           className="article-image-alt-hover relative w-full h-[42vh] min-h-[240px] max-h-[510px] bg-gray-900"
           data-alt={article.heroImage.altText ?? article.title}
         >
-          <Image
+          <img
             src={article.heroImage.url}
             alt={article.heroImage.altText ?? article.title}
-            fill
-            priority
-            className="object-cover opacity-80"
-            sizes="100vw"
+            className="absolute inset-0 h-full w-full object-cover opacity-80"
           />
           <div className="absolute inset-0 bg-linear-to-t from-gray-900/80 via-gray-900/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 px-6 pb-8 max-w-4xl mx-auto">
@@ -118,7 +114,11 @@ export function VisualGalleryLayout({ article, contentHtml, siteUrl, pinterestUs
                 <Link key={a.slug} href={`/blog/${a.slug}`} className="group rounded-2xl overflow-hidden border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all">
                   {a.heroImage && (
                     <div className="relative w-full aspect-video bg-gray-100">
-                      <Image src={a.heroImage.url} alt={a.heroImage.altText ?? a.title} fill className="object-cover" sizes="320px" />
+                      <img
+                        src={a.heroImage.url}
+                        alt={a.heroImage.altText ?? a.title}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
                     </div>
                   )}
                   <div className="p-4">

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 
 export function PublicNav({ siteName, logoUrl }: { siteName: string; logoUrl?: string | null }) {
   const initials = siteName
@@ -16,13 +15,10 @@ export function PublicNav({ siteName, logoUrl }: { siteName: string; logoUrl?: s
         <Link href="/" className="flex items-center gap-3 shrink-0">
           <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#17201b] shadow-sm">
             {logoUrl ? (
-              <Image
+              <img
                 src={logoUrl}
                 alt={`${siteName} logo`}
-                fill
-                priority
-                className="object-cover"
-                sizes="36px"
+                className="absolute inset-0 h-full w-full object-cover"
               />
             ) : (
               <span className="text-white text-[11px] font-bold tracking-wider">{initials}</span>
