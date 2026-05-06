@@ -15,7 +15,7 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
     }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.tag.findMany({ orderBy: { name: "asc" } }),
-    prisma.pinBoard.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    prisma.pinBoard.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
     prisma.siteSettings.findUnique({ where: { id: "singleton" } }).catch(() => null),
   ]);
 
