@@ -36,6 +36,7 @@ export function PinterestPins({ value, onChange, boards = [], articleId, article
   const [aiPrompt, setAiPrompt] = useState("");
   const [referenceImageUrl, setReferenceImageUrl] = useState<string | null>(null);
   const [aiBoardId, setAiBoardId] = useState<string>(boards[0]?.id ?? "");
+  const [bulkBoardId, setBulkBoardId] = useState<string>("");
   const [generating, setGenerating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [generatedSummary, setGeneratedSummary] = useState<{ title: string; tags: string[]; articleUrl: string } | null>(null);
@@ -75,6 +76,11 @@ export function PinterestPins({ value, onChange, boards = [], articleId, article
 
   function update(key: string, patch: Partial<PinItem>) {
     onChange(value.map((p) => (p.key === key ? { ...p, ...patch } : p)));
+  }
+
+  function applyBoardToAllPins() {
+    if (!bulkBoardId) return;
+    onChange(value.map((pin) => ({ ...pin, boardId: bulkBoardId })));
   }
 
   async function generatePin() {
@@ -220,6 +226,35 @@ export function PinterestPins({ value, onChange, boards = [], articleId, article
           </div>
         )}
       </div>
+
+      {boards.length > 0 && value.length > 0 && (
+        <div className="rounded-xl border border-gray-200 bg-white p-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <label className="min-w-0 flex-1 space-y-1.5">
+              <span className="text-xs font-medium text-gray-500">Apply board to all pins in this article</span>
+              <select
+                value={bulkBoardId}
+                onChange={(e) => setBulkBoardId(e.target.value)}
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+              >
+                <option value="">Choose board</option>
+                {boards.map((board) => (
+                  <option key={board.id} value={board.id}>{board.name}</option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={applyBoardToAllPins}
+              disabled={!bulkBoardId}
+              className="rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Apply to all
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-gray-400">After changing boards, press Update to save the article.</p>
+        </div>
+      )}
 
       {value.map((pin, i) => (
         <div key={pin.key} className="flex gap-3 items-start p-3 bg-gray-50 rounded-xl border border-gray-200">

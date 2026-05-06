@@ -243,45 +243,42 @@ export function ArticleForm({ articleId, initialData, categories, tags, boards =
       const pinsResult = await pinsRes.json().catch(() => null);
 
       setLastSaved(new Date());
-      let nextPinsForSaveKey = validPins;
-      setPins((currentPins) => {
-        const savedPins = Array.isArray(pinsResult?.pins)
-          ? pinsResult.pins as Array<{
-              id: string;
-              boardId?: string | null;
-              mediaId?: string | null;
-              imageUrl: string;
-              title?: string | null;
-              altText?: string | null;
-              description?: string | null;
-              linkUrl?: string | null;
-              taggedTopics?: string[];
-            }>
-          : [];
-        if (savedPins.length === 0) return currentPins;
-        const nextPins = currentPins.map((pin) => {
-          if (!pin.imageUrl) return pin;
-          const savedPin = savedPins.find((item) =>
-            (pin.id && item.id === pin.id) || item.imageUrl === pin.imageUrl
-          );
-          return savedPin ? {
-            ...pin,
-            id: savedPin.id,
-            boardId: savedPin.boardId ?? null,
-            mediaId: savedPin.mediaId ?? null,
-            title: savedPin.title ?? "",
-            altText: savedPin.altText ?? "",
-            description: savedPin.description ?? "",
-            linkUrl: savedPin.linkUrl ?? "",
-            taggedTopics: savedPin.taggedTopics ?? [],
-          } : pin;
-        });
-        nextPinsForSaveKey = serializePins(nextPins);
-        return nextPins;
-      });
+      const savedPins = Array.isArray(pinsResult?.pins)
+        ? pinsResult.pins as Array<{
+            id: string;
+            boardId?: string | null;
+            mediaId?: string | null;
+            imageUrl: string;
+            title?: string | null;
+            altText?: string | null;
+            description?: string | null;
+            linkUrl?: string | null;
+            taggedTopics?: string[];
+          }>
+        : [];
+      const nextPins = savedPins.length > 0
+        ? pins.map((pin) => {
+            if (!pin.imageUrl) return pin;
+            const savedPin = savedPins.find((item) =>
+              (pin.id && item.id === pin.id) || item.imageUrl === pin.imageUrl
+            );
+            return savedPin ? {
+              ...pin,
+              id: savedPin.id,
+              boardId: savedPin.boardId ?? null,
+              mediaId: savedPin.mediaId ?? null,
+              title: savedPin.title ?? "",
+              altText: savedPin.altText ?? "",
+              description: savedPin.description ?? "",
+              linkUrl: savedPin.linkUrl ?? "",
+              taggedTopics: savedPin.taggedTopics ?? [],
+            } : pin;
+          })
+        : pins;
+      if (savedPins.length > 0) setPins(nextPins);
       setLastSavedKey(JSON.stringify({
         ...payload,
-        pins: nextPinsForSaveKey,
+        pins: savedPins.length > 0 ? serializePins(nextPins) : validPins,
       }));
       if (overrideStatus) setStatus(overrideStatus);
       if (isNew) router.replace(`/admin/articles/${data.id}/edit`);
